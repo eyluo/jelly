@@ -29,12 +29,16 @@ let () =
     let () = test_peek (Lexer.create "../tests/whitespace.test") in
 
 
-    (* let ast = Parser.parse (Lexer.create "../tests/add.test") in
+    let ast = Parser.parse (Lexer.create "../tests/add.test") in
     let () = print_endline (Ast.string_of_exp ast) in
     let ast = Parser.parse (Lexer.create "../tests/whitespace.test") in
     let () = print_endline (Ast.string_of_exp ast) in
     let ast = Parser.parse (Lexer.create "../tests/bigboys.test") in
-    let () = print_endline (Ast.string_of_exp ast) in *)
+    let () = print_endline (Ast.string_of_exp ast) in
     let ast = Parser.parse (Lexer.create "../tests/precedence.test") in
+    let () = print_endline (Ast.string_of_exp ast) in
+    let ast = Parser.parse (Lexer.create "../tests/pemdas.test") in
+    let () = print_endline (Ast.string_of_exp ast) in
+    let ast = Parser.parse (Lexer.create "../tests/pemdas2.test") in
     let () = print_endline (Ast.string_of_exp ast) in
     ()
