@@ -14,5 +14,5 @@ let rec string_of_exp e =
             | Lexer.Minus -> "-"
             | Lexer.Divide -> "/"
             | Lexer.Times -> "*")
-        in String.concat ["(" ; string_of_exp e1 ; op_str ; string_of_exp e2 ; ")"]
+        in "(" ^ (string_of_exp e1) ^ op_str ^ (string_of_exp e2) ^ ")"
     | IntVal i -> string_of_int i
