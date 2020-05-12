@@ -1,5 +1,5 @@
 (* Lexer implementation.
- * Currently supports lexing basic addition. *)
+ * Currently supports lexing basic arithmetic. *)
 
 open Core
 

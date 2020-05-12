@@ -44,6 +44,6 @@ let parse lexer =
                 (match tok2 with
                 | Lexer.RParen -> e
                 | _ -> raise (SyntaxError "Unbalanced parentheses"))
-        | _ -> raise (SyntaxError "Illegal atom grammer")
+        | _ -> raise (SyntaxError "Illegal atom grammar")
     in
     parse_expr 0
