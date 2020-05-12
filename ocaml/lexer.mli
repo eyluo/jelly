@@ -1,6 +1,9 @@
 (* Lexer interface. *)
 
-type op = Pow | Plus | Times | Divide | Minus
+type op = Pow | Plus | Minus | Times | Divide
+
+type prec = int
+type assoc = Left | Right
 
 type token =
     | IntVal of int
@@ -10,6 +13,8 @@ type token =
     | Eof
 
 type lexer
+
+val op_info : op -> (prec * assoc)
 
 val string_of_token : token -> string
 

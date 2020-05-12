@@ -7,7 +7,11 @@ open Core
 exception InvalidToken of char
 
 (* Defines the legal operations. *)
-type op = Pow | Plus | Times | Divide | Minus
+type op = Pow | Plus | Minus | Times | Divide
+
+(* Defines operation precedence and associativity. *)
+type prec = int
+type assoc = Left | Right
 
 (* Defines legal tokens. *)
 type token =
@@ -29,6 +33,12 @@ type lexer = {
  * representation of the file. *)
 let slurp fname = In_channel.with_file ~binary:false fname 
     ~f:(fun ch -> In_channel.input_all ch)
+
+let op_info op = 
+    match op with
+    | Pow -> (3, Right)
+    | Plus | Minus -> (1, Left)
+    | Times | Divide -> (2, Left)
 
 (* For debugging: converts a token into a user-readable string. *)
 let string_of_token tok =
