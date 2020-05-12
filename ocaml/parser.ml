@@ -1,3 +1,6 @@
+(* Parser implementation.
+ * Currently supports operation precedence and grouping by associativity. *)
+
 open Core
 
 exception SyntaxError of string
@@ -8,12 +11,6 @@ exception SyntaxError of string
  *)
 
 let parse lexer =
-    let precedence op = 
-        let prec, assoc = Lexer.op_info op in
-        match assoc with
-        | Lexer.Left -> prec + 1
-        | Lexer.Right -> prec
-    in
     let rec parse_expr min_prec =
         let lhs = parse_atom () in
         let result = parse_expr_prec min_prec lhs in
@@ -23,12 +20,18 @@ let parse lexer =
         match tok with
         | Lexer.Eof | Lexer.IntVal _ -> let () = Lexer.drop lexer in lhs
         | Lexer.Operator op ->
-            let prec = precedence op in
+            let prec, assoc = Lexer.op_info op in
             if prec < min_prec then lhs
             else 
                 (* Only consume the token if it will be used in the AST *)
                 let () = Lexer.drop lexer in
-                let rhs = (parse_expr prec) in 
+                (* For left-associativity, increase precedence to left-group items *)
+                let next_min_prec = 
+                    match assoc with
+                    | Lexer.Left -> prec + 1
+                    | Lexer.Right -> prec
+                in
+                let rhs = (parse_expr next_min_prec) in 
                 parse_expr_prec min_prec (Ast.Operator(op, lhs, rhs))
         | _ -> lhs
     and parse_atom () =
@@ -41,6 +44,6 @@ let parse lexer =
                 (match tok2 with
                 | Lexer.RParen -> e
                 | _ -> raise (SyntaxError "Unbalanced parentheses"))
-        | _ -> raise (SyntaxError "boogabooga")
+        | _ -> raise (SyntaxError "Illegal atom grammer")
     in
     parse_expr 0
