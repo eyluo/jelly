@@ -1,6 +1,6 @@
 (* Lexer interface. *)
 
-type op = Pow | Plus | Times | Divide | Minus
+type op = Pow | Plus | Minus | Times | Divide
 
 type token =
     | IntVal of int

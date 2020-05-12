@@ -1,5 +1,5 @@
 (* Lexer implementation.
- * Currently supports lexing basic addition. *)
+ * Currently supports lexing basic arithmetic. *)
 
 open Core
 
@@ -7,7 +7,7 @@ open Core
 exception InvalidToken of char
 
 (* Defines the legal operations. *)
-type op = Pow | Plus | Times | Divide | Minus
+type op = Pow | Plus | Minus | Times | Divide
 
 (* Defines legal tokens. *)
 type token =
@@ -30,10 +30,11 @@ type lexer = {
 let slurp fname = In_channel.with_file ~binary:false fname 
     ~f:(fun ch -> In_channel.input_all ch)
 
+
 (* For debugging: converts a token into a user-readable string. *)
 let string_of_token tok =
     match tok with
-    | IntVal i -> String.concat ["TOK "; (string_of_int i); "\n"]
+    | IntVal i -> "TOK " ^ (string_of_int i) ^ "\n"
     | Operator op -> 
         (match op with
         | Pow -> "TOK ^\n"
@@ -75,7 +76,7 @@ let rec next_token lxr =
                                 match digit with
                                 | '0' .. '9' -> 
                                     lxr.pos := !(lxr.pos) + 1; 
-                                    parse_digits (String.concat [v; Char.to_string digit])
+                                    parse_digits (v ^ (Char.to_string digit))
                                 | _ -> v
                             in result
                     in 
