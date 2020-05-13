@@ -5,14 +5,19 @@ module P = Parser
 
 let () = 
   (* Prints all of the tokens. *)
-  let rec print_tokens lxr = 
-    let tok = L.pop lxr in
-    let () = print_string (L.string_of_token tok) in
-    match tok with
-    | L.Eof -> ()
-    | _ -> (print_tokens lxr)
+  let print_tokens lxr = 
+    let rec acc_tokens acc =
+      let tok = L.pop lxr in
+      let tok_str = L.string_of_token tok in
+      match tok with
+      | L.Eof -> acc
+      | _ -> acc_tokens (acc ^ tok_str ^ ";")
+    in
+    let result = "[ " ^ (acc_tokens "") ^ " ]\n" in
+    print_string result
   in
 
+  (* Ensures peek and pop work as expected. *)
   let rec test_peek lxr = 
     let tok1 = L.peek lxr in 
     let tok2 = L.pop lxr in
@@ -21,40 +26,71 @@ let () =
     else test_peek lxr
   in 
 
-  let () = print_tokens (L.create "../tests/add.test") in
-  let () = print_endline("") in
-  let () = print_tokens (L.create "../tests/whitespace.test") in
-  let () = print_endline("") in
-  let () = print_tokens (L.create "../tests/bigboys.test") in
-  let () = print_endline("") in
-  let () = print_tokens (L.create "../tests/pemdas.test") in
-  let () = print_endline("") in
-  let () = test_peek (L.create "../tests/whitespace.test") in
+  (* Prints tokens to ensure they match with the test files. *)
+  print_newline ();
+  print_endline "Verifying tokens of arithmetic expressions...\n";
 
+  print_tokens (L.create "../tests/add.test");
+  print_tokens (L.create "../tests/whitespace.test");
+  print_tokens (L.create "../tests/bigboys.test");
+  print_tokens (L.create "../tests/pemdas.test");
+
+  (* Test peeking against popping. *)
+  print_newline ();
+  print_endline "Verifying peek against pop operations...\n";
+
+  test_peek (L.create "../tests/whitespace.test");
+
+  (* Prints ASTs for expressions to ensure they match with the test files. *)
+  print_newline ();
+  print_endline "Verifying ASTs of arithmetic expressions...\n";
 
   let ast = P.parse (L.create "../tests/add.test") in
-  let () = print_endline (Ast.string_of_exp ast) in
+  print_endline (Ast.string_of_exp ast);
   let ast = P.parse (L.create "../tests/whitespace.test") in
-  let () = print_endline (Ast.string_of_exp ast) in
+  print_endline (Ast.string_of_exp ast);
   let ast = P.parse (L.create "../tests/bigboys.test") in
-  let () = print_endline (Ast.string_of_exp ast) in
+  print_endline (Ast.string_of_exp ast);
   let ast = P.parse (L.create "../tests/precedence.test") in
-  let () = print_endline (Ast.string_of_exp ast) in
+  print_endline (Ast.string_of_exp ast);
   let ast = P.parse (L.create "../tests/pemdas.test") in
-  let () = print_endline (Ast.string_of_exp ast) in
+  print_endline (Ast.string_of_exp ast);
   let ast = P.parse (L.create "../tests/pemdas2.test") in
-  let () = print_endline (Ast.string_of_exp ast) in
+  print_endline (Ast.string_of_exp ast);
 
-  let () = print_tokens (L.create "../tests/assignment.test") in
-  let () = print_endline("") in
-  let () = print_tokens (L.create "../tests/abc.test") in
-  let () = print_endline("") in
-  let () = print_tokens (L.create "../tests/statements.test") in
-  let () = print_endline("") in
+  (* Prints tokens for programs to ensure they match with the test files. *)
+  print_newline ();
+  print_endline "Verifying tokens of programs...\n";
 
+  print_tokens (L.create "../tests/assignment.test");
+  print_tokens (L.create "../tests/abc.test");
+  print_tokens (L.create "../tests/statements.test");
+
+  (* Prints ASTs for programs to ensure they match with the test files. *)
+  print_newline ();
+  print_endline "Verifying ASTs of programs...\n";
+
+  let prog = P.parse_program (L.create "../tests/assignment.test") in
+  print_endline (Ast.string_of_program prog);
+  let prog = P.parse_program (L.create "../tests/abc.test") in
+  print_endline (Ast.string_of_program prog);
   let prog = P.parse_program (L.create "../tests/statements.test") in
-  let () = print_endline (Ast.string_of_program prog) in
-  try print_tokens (L.create "../tests/illegalvar.test")
+  print_endline (Ast.string_of_program prog);
+
+  (* Illegal program tests. *)
+  print_newline ();
+  print_endline "Testing illegal programs...\n";
+
+  (* Try to lex a program with illegal variable name. *)
+  let () = 
+    try print_tokens (L.create "../tests/bad/illegalvar.test")
+    with
+    | L.InvalidInt _ -> print_endline "caught illegal variable"
+    | _ -> assert false
+  in
+
+  (* Try to parse a program with illegal assignment. *)
+  try let (_ : Ast.program) = P.parse_program (L.create "../tests/bad/flipped_assignment.test") in ()
   with
-  | L.InvalidInt _ -> print_endline("caught illegal variable")
+  | P.ParserError s -> print_endline s
   | _ -> assert false

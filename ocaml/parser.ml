@@ -6,7 +6,7 @@ open Core
 module L = Lexer
 module S = Symbol
 
-exception SyntaxError of string
+exception ParserError of string
 
 (* Defines operation associativity. *)
 type assoc = Left | Right
@@ -56,8 +56,8 @@ let parse lexer =
       let tok2 = L.pop lexer in
       (match tok2 with
        | L.RParen -> e
-       | _ -> raise (SyntaxError "Unbalanced parentheses"))
-    | _ -> raise (SyntaxError "Illegal atom grammar")
+       | _ -> raise (ParserError "Unbalanced parentheses"))
+    | _ -> raise (ParserError "Illegal atom grammar")
   in
   parse_expr 0
 
@@ -68,10 +68,11 @@ let rec parse_stmt lexer =
     let eq = L.pop lexer in
     (match eq with
      | L.Eq -> Ast.Assign (S.to_sym s, parse lexer)
-     | _ -> raise (SyntaxError "var assignment: should be followed by ="))
+     | _ -> raise (ParserError "var assignment: should be followed by ="))
   | L.Return -> Ast.Return (parse lexer)
+  (* This only exists for empty-line commands. *)
   | L.Delim -> parse_stmt lexer
-  | _ -> raise (SyntaxError "statement does not begin with assignment or return")
+  | _ -> raise (ParserError "statement does not begin with assignment or return")
 
 let parse_program lexer =
   let rec parse_program' prog = 

@@ -39,21 +39,21 @@ let slurp fname = In_channel.with_file ~binary:false fname
 (* For debugging: converts a token into a user-readable string. *)
 let string_of_token tok =
   match tok with
-  | Symbol s -> "TOK SYM " ^ s ^ "\n"
-  | IntVal i -> "TOK " ^ (string_of_int i) ^ "\n"
+  | Symbol s -> "TOK SYM " ^ s
+  | IntVal i -> "TOK " ^ (string_of_int i)
   | Operator op -> 
     (match op with
-     | Pow -> "TOK ^\n"
-     | Plus -> "TOK +\n"
-     | Minus -> "TOK -\n"
-     | Times -> "TOK *\n"
-     | Divide -> "TOK /\n")
-  | Eq -> "TOK =\n"
-  | LParen -> "TOK (\n"
-  | RParen -> "TOK )\n"
-  | Delim -> "TOK ;\n"
-  | Return -> "TOK return\n"
-  | Eof -> "TOK EOF\n"
+     | Pow -> "TOK ^"
+     | Plus -> "TOK +"
+     | Minus -> "TOK -"
+     | Times -> "TOK *"
+     | Divide -> "TOK /")
+  | Eq -> "TOK ="
+  | LParen -> "TOK ("
+  | RParen -> "TOK )"
+  | Delim -> "TOK ;"
+  | Return -> "TOK return"
+  | Eof -> "TOK EOF"
 
 (* Creates a new lexer. *)
 let create fname = 
