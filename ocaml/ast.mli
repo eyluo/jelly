@@ -1,10 +1,10 @@
 type exp = 
-  | Var of string
+  | Var of Symbol.t
   | Operator of Lexer.op * exp * exp
   | IntVal of int
 
 type stmt = 
-  | Assign of Lexer.Symbol * exp
+  | Assign of Symbol.t * exp
   | Return of exp
 
 type program = stmt list

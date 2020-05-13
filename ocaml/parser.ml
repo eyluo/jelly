@@ -4,6 +4,7 @@
 open Core
 
 module L = Lexer
+module S = Symbol
 
 exception SyntaxError of string
 
@@ -11,7 +12,7 @@ exception SyntaxError of string
 type assoc = Left | Right
 
 (* 
- * atom : int | lparen * exp * lparen
+ * atom : int | symbol | lparen * exp * lparen
  * exp : atom * op * exp 
  *)
 
@@ -29,7 +30,7 @@ let parse lexer =
   and parse_expr_prec min_prec lhs = 
     let tok = L.peek lexer in
     match tok with
-    | L.Eof | L.IntVal _ -> L.drop lexer; lhs
+    | L.Delim | L.Eof | L.IntVal _ -> L.drop lexer; lhs
     | L.Operator op ->
       let prec, assoc = op_info op in
       if prec < min_prec then lhs
@@ -49,6 +50,7 @@ let parse lexer =
     let tok = L.pop lexer in
     match tok with
     | L.IntVal i -> Ast.IntVal i
+    | L.Symbol s -> Ast.Var (S.to_sym s)
     | L.LParen ->
       let e = parse_expr 0 in
       let tok2 = L.pop lexer in
@@ -59,6 +61,23 @@ let parse lexer =
   in
   parse_expr 0
 
-let parse_stmt lexer = let _ = lexer in Ast.Return (IntVal 0)
+let rec parse_stmt lexer = 
+  let tok = L.pop lexer in
+  match tok with
+  | L.Symbol s -> 
+    let eq = L.pop lexer in
+    (match eq with
+     | L.Eq -> Ast.Assign (S.to_sym s, parse lexer)
+     | _ -> raise (SyntaxError "var assignment: should be followed by ="))
+  | L.Return -> Ast.Return (parse lexer)
+  | L.Delim -> parse_stmt lexer
+  | _ -> raise (SyntaxError "statement does not begin with assignment or return")
 
-let parse_program lexer = [parse_stmt lexer]
+let parse_program lexer =
+  let rec parse_program' prog = 
+    let tok = L.peek lexer in
+    match tok with
+    | L.Eof -> prog
+    | _ -> let stmt = parse_stmt lexer in parse_program' (List.append prog [stmt])
+  in
+  parse_program' []

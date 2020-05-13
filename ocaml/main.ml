@@ -47,10 +47,13 @@ let () =
 
   let () = print_tokens (L.create "../tests/assignment.test") in
   let () = print_endline("") in
-  let () = print_tokens (L.create "../tests/statements.test") in
-  let () = print_endline("") in
   let () = print_tokens (L.create "../tests/abc.test") in
   let () = print_endline("") in
+  let () = print_tokens (L.create "../tests/statements.test") in
+  let () = print_endline("") in
+
+  let prog = P.parse_program (L.create "../tests/statements.test") in
+  let () = print_endline (Ast.string_of_program prog) in
   try print_tokens (L.create "../tests/illegalvar.test")
   with
   | L.InvalidInt _ -> print_endline("caught illegal variable")
