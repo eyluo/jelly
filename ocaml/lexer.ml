@@ -5,16 +5,21 @@ open Core
 
 (* Defines an exception if we encounter an invalid token. *)
 exception InvalidToken of char
+exception InvalidInt of string
 
 (* Defines the legal operations. *)
 type op = Pow | Plus | Minus | Times | Divide
 
 (* Defines legal tokens. *)
 type token =
+    | Symbol of string
     | IntVal of int
     | Operator of op
+    | Eq
     | LParen
     | RParen
+    | Delim
+    | Return
     | Eof
 
 (* Defines a custom lexer type. *)
@@ -34,6 +39,7 @@ let slurp fname = In_channel.with_file ~binary:false fname
 (* For debugging: converts a token into a user-readable string. *)
 let string_of_token tok =
     match tok with
+    | Symbol s -> "TOK SYM " ^ s ^ "\n"
     | IntVal i -> "TOK " ^ (string_of_int i) ^ "\n"
     | Operator op -> 
         (match op with
@@ -42,8 +48,11 @@ let string_of_token tok =
         | Minus -> "TOK -\n"
         | Times -> "TOK *\n"
         | Divide -> "TOK /\n")
+    | Eq -> "TOK =\n"
     | LParen -> "TOK (\n"
     | RParen -> "TOK )\n"
+    | Delim -> "TOK ;\n"
+    | Return -> "TOK return\n"
     | Eof -> "TOK EOF\n"
 
 (* Creates a new lexer. *)
@@ -68,23 +77,49 @@ let rec next_token lxr =
                 | ' ' | '\n' | '\t' | '\r' -> lxr.pos := !(lxr.pos) + 1; next_token lxr
                 (* If you encounter a digit, gobble up all of the subsequent numbers *)
                 | '0' .. '9' -> 
-                    let rec parse_digits v = 
-                        if !(lxr.pos) = lxr.length then v
+                    let rec parse_digits num_str = 
+                        if !(lxr.pos) = lxr.length then num_str
                         else
                             let digit = String.get lxr.file !(lxr.pos) in
                             let result = 
                                 match digit with
                                 | '0' .. '9' -> 
                                     lxr.pos := !(lxr.pos) + 1; 
-                                    parse_digits (v ^ (Char.to_string digit))
-                                | _ -> v
+                                    parse_digits (num_str ^ (Char.to_string digit))
+                                (* Ints should not have letters in them. *)
+                                | 'A' .. 'Z' | 'a' .. 'z' -> raise (InvalidInt num_str)
+                                | _ -> num_str
                             in result
                     in 
                     let num = int_of_string (parse_digits "")
                     in IntVal num
+                (* If you encounter a letter, interpret as a symbol or keyword. *)
+                | 'A' .. 'Z' | 'a' .. 'z' ->
+                    let rec parse_symbol str =
+                        if !(lxr.pos) = lxr.length then str
+                        else
+                            let c = String.get lxr.file !(lxr.pos) in
+                            let result =
+                                match c with
+                                | 'A' .. 'Z' | 'a' .. 'z'
+                                | '0' .. '9' -> 
+                                    lxr.pos := !(lxr.pos) + 1; 
+                                    parse_symbol (str ^ (Char.to_string c))
+                                | _ -> str
+                            in result
+                    in
+                    (* Handle return keyword *)
+                    let sym = parse_symbol "" in 
+                        (match sym with
+                        (* HERE: I suspect this is where we would extend to
+                         * support more keywords in the future. *)
+                        | "return" -> Return
+                        | _ -> Symbol sym)
                 | _ -> 
                     let t = 
                         match ch with
+                        | '=' -> Eq
+                        | ';' -> Delim
                         | '^' -> Operator(Pow)
                         | '+' -> Operator(Plus)
                         | '-' -> Operator(Minus)
