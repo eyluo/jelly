@@ -1,3 +1,2 @@
-*/_build
-*/.merlin
-*/.dune-keep
+_build
+.merlin
