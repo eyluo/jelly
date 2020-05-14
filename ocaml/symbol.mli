@@ -1,4 +1,4 @@
-type t = string
+type t [@@deriving sexp, compare, hash]
 
-val to_sym : string -> t
+val create : string -> t
 val string_of_symbol : t -> string

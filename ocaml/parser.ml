@@ -50,7 +50,7 @@ let parse lexer =
     let tok = L.pop lexer in
     match tok with
     | L.IntVal i -> Ast.IntVal i
-    | L.Symbol s -> Ast.Var (S.to_sym s)
+    | L.Symbol s -> Ast.Var (S.create s)
     | L.LParen ->
       let e = parse_expr 0 in
       let tok2 = L.pop lexer in
@@ -67,7 +67,7 @@ let rec parse_stmt lexer =
   | L.Symbol s -> 
     let eq = L.pop lexer in
     (match eq with
-     | L.Eq -> Ast.Assign (S.to_sym s, parse lexer)
+     | L.Eq -> Ast.Assign (S.create s, parse lexer)
      | _ -> raise (ParserError "var assignment: should be followed by ="))
   | L.Return -> Ast.Return (parse lexer)
   (* This only exists for empty-line commands. *)
