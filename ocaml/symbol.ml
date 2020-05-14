@@ -1,4 +1,6 @@
-type t = string
+open Core
 
-let to_sym s = s
+type t = string [@@deriving sexp, compare, hash]
+
+let create s = s
 let string_of_symbol sym = sym

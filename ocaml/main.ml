@@ -2,6 +2,7 @@ exception TestFail of string
 
 module L = Lexer
 module P = Parser
+module T = Typecheck
 
 let () = 
   (* Prints all of the tokens. *)
@@ -72,10 +73,25 @@ let () =
 
   let prog = P.parse_program (L.create "../tests/assignment.test") in
   print_endline (Ast.string_of_program prog);
+  let () = 
+    try T.typecheck prog
+    with
+    | T.TypeError msg -> print_endline msg
+    | _ -> raise (TestFail "assignment.test does not have a return statement")
+  in
   let prog = P.parse_program (L.create "../tests/abc.test") in
   print_endline (Ast.string_of_program prog);
+  T.typecheck prog;
   let prog = P.parse_program (L.create "../tests/statements.test") in
   print_endline (Ast.string_of_program prog);
+  T.typecheck prog;
+  let prog = P.parse_program (L.create "../tests/bad/early_ref.test") in
+  let () = 
+    try T.typecheck prog
+    with
+    | T.TypeError msg -> print_endline msg
+    | _ -> raise (TestFail "early_ref.test references e early")
+  in
 
   (* Illegal program tests. *)
   print_newline ();
@@ -86,11 +102,11 @@ let () =
     try print_tokens (L.create "../tests/bad/illegalvar.test")
     with
     | L.InvalidInt _ -> print_endline "caught illegal variable"
-    | _ -> assert false
+    | _ -> raise (TestFail "illegalvar.test has illegal variable names")
   in
 
   (* Try to parse a program with illegal assignment. *)
   try let (_ : Ast.program) = P.parse_program (L.create "../tests/bad/flipped_assignment.test") in ()
   with
   | P.ParserError s -> print_endline s
-  | _ -> assert false
+  | _ -> raise (TestFail "flipped_assignment.test reverses assignment order")

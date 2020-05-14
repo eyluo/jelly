@@ -120,11 +120,11 @@ let rec next_token lxr =
             match ch with
             | '=' -> Eq
             | ';' -> Delim
-            | '^' -> Operator(Pow)
-            | '+' -> Operator(Plus)
-            | '-' -> Operator(Minus)
-            | '*' -> Operator(Times)
-            | '/' -> Operator(Divide)
+            | '^' -> Operator Pow
+            | '+' -> Operator Plus
+            | '-' -> Operator Minus
+            | '*' -> Operator Times
+            | '/' -> Operator Divide
             | '(' -> LParen
             | ')' -> RParen
             | _ -> raise (InvalidToken ch)
