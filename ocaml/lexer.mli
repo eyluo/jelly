@@ -1,13 +1,20 @@
 (* Lexer interface. *)
 
+exception InvalidToken of char
+exception InvalidInt of string
+
 type op = Pow | Plus | Minus | Times | Divide
 
 type token =
-    | IntVal of int
-    | Operator of op
-    | LParen
-    | RParen
-    | Eof
+  | Symbol of string
+  | IntVal of int
+  | Operator of op
+  | Eq
+  | LParen
+  | RParen
+  | Delim
+  | Return
+  | Eof
 
 type lexer
 
