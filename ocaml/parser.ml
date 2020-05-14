@@ -44,7 +44,7 @@ let parse lexer =
           | Right -> prec
         in
         let rhs = parse_expr next_min_prec in 
-        parse_expr_prec min_prec (Ast.Operator(op, lhs, rhs))
+        parse_expr_prec min_prec (Ast.Operator (op, lhs, rhs))
     | _ -> lhs
   and parse_atom () =
     let tok = L.pop lexer in

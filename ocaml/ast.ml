@@ -34,5 +34,5 @@ let string_of_stmt s =
   | Return e -> "return " ^ (string_of_exp e) ^ "; "
 
 let string_of_program ss = 
-  let stmts = List.fold (List.map ss ~f:string_of_stmt) ~init:"" ~f:(^) in
+  let stmts = String.concat (List.map ss ~f:string_of_stmt) in
   "[ " ^ stmts ^ "]\n"
