@@ -3,14 +3,11 @@ open Core
 exception TypeError of string
 
 let typecheck program =
-  let seen = Hashtbl.create (module Symbol) in
+  let seen = Hash_set.create (module Symbol) in
   (* Ensures that an expression contains symbols we've seen so far. *)
   let rec valid_exp exp =
     match exp with
-    | Ast.Var s ->
-      (match Hashtbl.find seen s with 
-       | Some _ -> true
-       | None -> false)
+    | Ast.Var s -> Hash_set.mem seen s
     | Ast.Operator (_, e1, e2) -> (valid_exp e1) && (valid_exp e2)
     | _ -> true
   in
@@ -27,7 +24,7 @@ let typecheck program =
        | Ast.Return _ -> raise (TypeError "return statement in middle of program")
        | Ast.Assign (s, exp) -> 
          if valid_exp exp then 
-           let (_ : [`Duplicate | `Ok])  = Hashtbl.add seen ~key:s ~data:() in typecheck' ss 
+           let () = Hash_set.add seen s in typecheck' ss 
          else raise (TypeError "unrecognized symbol in assignment statement"))
   in
   typecheck' program
