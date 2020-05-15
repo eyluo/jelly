@@ -12,6 +12,7 @@ type instr =
 
 type t = instr list
 
+(* Symbol -> Temp.t *)
 let seen = Hashtbl.create (module Symbol)
 
 (* Converts the expression into triple IR and then stores the result in temp. *)
@@ -41,7 +42,7 @@ let rec lower_program program =
        | Ast.Assign (sym, exp) ->
          let t = Temp.create() in
          let result = lower_exp t exp in
-         let (_ : [`Duplicate | `Ok]) = Hashtbl.add seen ~key:sym ~data:t in
+         Hashtbl.set seen ~key:sym ~data:t;
          result
        | Ast.Return exp -> let t = Temp.create() in lower_exp t exp)
     in List.append instr_ir (lower_program ps)
