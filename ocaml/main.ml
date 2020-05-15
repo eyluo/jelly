@@ -65,26 +65,26 @@ let () =
   print_endline "Verifying tokens of programs...\n";
 
   print_tokens (L.create "../tests/assignment.test");
-  print_tokens (L.create "../tests/abc.test");
-  print_tokens (L.create "../tests/statements.test");
+  print_tokens (L.create "../tests/legal/abc.test");
+  print_tokens (L.create "../tests/legal/statements.test");
 
   (* Prints ASTs for programs to ensure they match with the test files. *)
   print_newline ();
   print_endline "Verifying ASTs of programs...\n";
 
-  let prog = P.parse_program (L.create "../tests/abc.test") in
+  let prog = P.parse_program (L.create "../tests/legal/abc.test") in
   print_endline (Ast.string_of_program prog);
   T.typecheck prog;
   let ir_prog = IR.lower_program prog in
 
   print_endline (IR.string_of_ir ir_prog);
-  let prog = P.parse_program (L.create "../tests/statements.test") in
+  let prog = P.parse_program (L.create "../tests/legal/statements.test") in
   print_endline (Ast.string_of_program prog);
   T.typecheck prog;
   let ir_prog = IR.lower_program prog in
   print_endline (IR.string_of_ir ir_prog);
 
-  let prog = P.parse_program (L.create "../tests/onevar.test") in
+  let prog = P.parse_program (L.create "../tests/legal/onevar.test") in
   print_endline (Ast.string_of_program prog);
   T.typecheck prog;
   print_endline (IR.string_of_ir (IR.lower_program prog));
@@ -131,14 +131,18 @@ let () =
 
 
   (* After the tests, try to compile something! *)
-  let fname = "../tests/abc.test" in
-  let lexer = L.create fname in
-  let prog = P.parse_program lexer in
-  T.typecheck prog;
-  let ir_prog = IR.lower_program prog in
-  let asm = Asm.string_of_asm ir_prog in
-  Asm.asm_to_file "bin/out.s" asm;
-  let (_ : Core.Unix.Exit_or_signal.t) = Core.Unix.system "gcc -c bin/out.s -o bin/out.o" in
-  let (_ : Core.Unix.Exit_or_signal.t) = Core.Unix.system "gcc bin/out.o runtime.c -o bin/out" in
-  let (_ : Core.Unix.Exit_or_signal.t) = Core.Unix.system "./bin/out" in
-  ()
+  let compile fname = 
+    let fpath = "../tests/legal/" ^ fname ^ ".test" in
+    let lexer = L.create fpath in
+    let prog = P.parse_program lexer in
+    T.typecheck prog;
+    let ir_prog = IR.lower_program prog in
+    let asm = Asm.string_of_asm ir_prog in
+    Asm.asm_to_file ("bin/" ^ fname ^ ".s") asm;
+    let (_ : Core.Unix.Exit_or_signal.t) = Core.Unix.system ("gcc -c bin/" ^ fname ^ ".s -o bin/" ^ fname ^ ".o") in
+    let (_ : Core.Unix.Exit_or_signal.t) = Core.Unix.system ("gcc bin/" ^ fname ^ ".o runtime.c -o bin/" ^ fname) in
+    let (_ : Core.Unix.Exit_or_signal.t) = Core.Unix.system ("./bin/" ^ fname) in
+    ()
+  in
+
+  List.iter compile ["abc" ; "statements" ; "onevar"; "div"]
