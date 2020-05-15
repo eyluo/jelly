@@ -3,6 +3,7 @@ exception TestFail of string
 module L = Lexer
 module P = Parser
 module T = Typecheck
+module IR = Ir
 
 let () = 
   (* Prints all of the tokens. *)
@@ -71,6 +72,24 @@ let () =
   print_newline ();
   print_endline "Verifying ASTs of programs...\n";
 
+  let prog = P.parse_program (L.create "../tests/abc.test") in
+  print_endline (Ast.string_of_program prog);
+  T.typecheck prog;
+  print_endline (IR.string_of_ir (IR.lower_program prog));
+  let prog = P.parse_program (L.create "../tests/statements.test") in
+  print_endline (Ast.string_of_program prog);
+  T.typecheck prog;
+  print_endline (IR.string_of_ir (IR.lower_program prog));
+  let prog = P.parse_program (L.create "../tests/onevar.test") in
+  print_endline (Ast.string_of_program prog);
+  T.typecheck prog;
+  print_endline (IR.string_of_ir (IR.lower_program prog));
+
+  (* Illegal program tests. *)
+  print_newline ();
+  print_endline "Testing illegal programs...\n";
+
+  (* Program without a return statement. *)
   let prog = P.parse_program (L.create "../tests/assignment.test") in
   print_endline (Ast.string_of_program prog);
   let () = 
@@ -79,23 +98,16 @@ let () =
     | T.TypeError msg -> print_endline msg
     | _ -> raise (TestFail "assignment.test does not have a return statement")
   in
-  let prog = P.parse_program (L.create "../tests/abc.test") in
-  print_endline (Ast.string_of_program prog);
-  T.typecheck prog;
-  let prog = P.parse_program (L.create "../tests/statements.test") in
-  print_endline (Ast.string_of_program prog);
-  T.typecheck prog;
+
+  (* Program that references an undefined variable. *)
   let prog = P.parse_program (L.create "../tests/bad/early_ref.test") in
+  print_endline (Ast.string_of_program prog);
   let () = 
     try T.typecheck prog
     with
     | T.TypeError msg -> print_endline msg
     | _ -> raise (TestFail "early_ref.test references e early")
   in
-
-  (* Illegal program tests. *)
-  print_newline ();
-  print_endline "Testing illegal programs...\n";
 
   (* Try to lex a program with illegal variable name. *)
   let () = 

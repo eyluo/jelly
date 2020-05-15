@@ -23,7 +23,7 @@ type token =
   | Eof
 
 (* Defines a custom lexer type. *)
-type lexer = {
+type t = {
   file : string;                  (* File contents *)
   length : int;                   (* Length of file contents *)
   pos : int ref;                  (* Index into file contents *)
@@ -36,24 +36,26 @@ let slurp fname = In_channel.with_file ~binary:false fname
     ~f:(fun ch -> In_channel.input_all ch)
 
 
+let string_of_op op =
+  match op with
+  | Pow -> "^"
+  | Plus -> "+"
+  | Minus -> "-"
+  | Times -> "*"
+  | Divide -> "/"
+
 (* For debugging: converts a token into a user-readable string. *)
 let string_of_token tok =
   match tok with
-  | Symbol s -> "TOK SYM " ^ s
-  | IntVal i -> "TOK " ^ (string_of_int i)
-  | Operator op -> 
-    (match op with
-     | Pow -> "TOK ^"
-     | Plus -> "TOK +"
-     | Minus -> "TOK -"
-     | Times -> "TOK *"
-     | Divide -> "TOK /")
-  | Eq -> "TOK ="
-  | LParen -> "TOK ("
-  | RParen -> "TOK )"
-  | Delim -> "TOK ;"
-  | Return -> "TOK return"
-  | Eof -> "TOK EOF"
+  | Symbol s -> "SYM " ^ s
+  | IntVal i -> "" ^ (string_of_int i)
+  | Operator op -> string_of_op op
+  | Eq -> "="
+  | LParen -> "("
+  | RParen -> ")"
+  | Delim -> ";"
+  | Return -> "return"
+  | Eof -> "EOF"
 
 (* Creates a new lexer. *)
 let create fname = 
