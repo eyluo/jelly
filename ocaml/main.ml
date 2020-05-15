@@ -75,17 +75,15 @@ let () =
   let prog = P.parse_program (L.create "../tests/abc.test") in
   print_endline (Ast.string_of_program prog);
   T.typecheck prog;
+  let ir_prog = IR.lower_program prog in
+
+  print_endline (IR.string_of_ir ir_prog);
   let prog = P.parse_program (L.create "../tests/statements.test") in
   print_endline (Ast.string_of_program prog);
   T.typecheck prog;
   let ir_prog = IR.lower_program prog in
   print_endline (IR.string_of_ir ir_prog);
-  let asm = Asm.string_of_asm ir_prog in
-  Asm.asm_to_file asm;
-  let (_ : Core.Unix.Exit_or_signal.t) = Core.Unix.system "gcc -c out.s -o out.o" in
-  let (_ : Core.Unix.Exit_or_signal.t) = Core.Unix.system "gcc out.o runtime.c -o out" in
-  let (_ : Core.Unix.Exit_or_signal.t) = Core.Unix.system "./out" in
-  print_endline (IR.string_of_ir (IR.lower_program prog));
+
   let prog = P.parse_program (L.create "../tests/onevar.test") in
   print_endline (Ast.string_of_program prog);
   T.typecheck prog;
@@ -124,7 +122,23 @@ let () =
   in
 
   (* Try to parse a program with illegal assignment. *)
-  try let (_ : Ast.program) = P.parse_program (L.create "../tests/bad/flipped_assignment.test") in ()
-  with
-  | P.ParserError s -> print_endline s
-  | _ -> raise (TestFail "flipped_assignment.test reverses assignment order")
+  let () = 
+    try let (_ : Ast.program) = P.parse_program (L.create "../tests/bad/flipped_assignment.test") in ()
+    with
+    | P.ParserError s -> print_endline s
+    | _ -> raise (TestFail "flipped_assignment.test reverses assignment order")
+  in
+
+
+  (* After the tests, try to compile something! *)
+  let fname = "../tests/abc.test" in
+  let lexer = L.create fname in
+  let prog = P.parse_program lexer in
+  T.typecheck prog;
+  let ir_prog = IR.lower_program prog in
+  let asm = Asm.string_of_asm ir_prog in
+  Asm.asm_to_file "bin/out.s" asm;
+  let (_ : Core.Unix.Exit_or_signal.t) = Core.Unix.system "gcc -c bin/out.s -o bin/out.o" in
+  let (_ : Core.Unix.Exit_or_signal.t) = Core.Unix.system "gcc bin/out.o runtime.c -o bin/out" in
+  let (_ : Core.Unix.Exit_or_signal.t) = Core.Unix.system "./bin/out" in
+  ()

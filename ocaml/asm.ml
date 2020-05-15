@@ -55,4 +55,4 @@ let string_of_asm ir =
   in
   prefix ^ (String.concat ?sep:(Some "\n") (string_of_asm' ir [])) ^ suffix
 
-let asm_to_file asm = Out_channel.with_file "out.s" ~f:(fun out -> Out_channel.output_string out asm);
+let asm_to_file outpath asm = Out_channel.with_file outpath ~f:(fun out -> Out_channel.output_string out asm);
