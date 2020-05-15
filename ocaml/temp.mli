@@ -1,5 +1,6 @@
 type t [@@deriving sexp, compare, hash]
 
+val reset : unit -> unit
 val create : unit -> t
 
 val string_of_temp : t -> string

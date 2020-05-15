@@ -8,16 +8,6 @@ module IR = Ir
 type t = string
 
 let string_of_asm ir =
-  (* For a Lexer.op, gives the corresponding assembly instruction. *)
-  let instr_of_op op = 
-    match op with
-    | L.Pow -> raise (AssemblyError "idk the asm instr for ^ lol")
-    | L.Plus -> "addq "
-    | L.Minus -> "subq "
-    | L.Times -> "imulq "
-    (* TODO: idivq needs %rdx to be 0 and will clobber %rdx in the process. *)
-    | L.Divide -> "idivq "
-  in
   (* Calculates the stack offset for a temporary. *)
   let offset temp = -8 * (Temp.int_of_temp temp) in
   let asm_of_temp temp = string_of_int (offset temp) ^ "(%rbp)" in
@@ -26,6 +16,21 @@ let string_of_asm ir =
     match op with
     | IR.Immediate num -> "$" ^ (string_of_int num)
     | IR.Temporary temp -> asm_of_temp temp
+  in
+  (* For a Lexer.op, gives the corresponding assembly instruction. *)
+  let instr_of_op op operand = 
+    let opnd = asm_of_operand operand in
+    let result = 
+      match op with
+      | L.Pow -> raise (AssemblyError "idk the asm instr for ^ lol")
+      | L.Plus -> "addq " ^ opnd ^ ", %rax"
+      | L.Minus -> "subq " ^ opnd ^ ", %rax"
+      | L.Times -> "imulq " ^ opnd ^ ", %rax"
+      (* TODO: idivq needs to sign-extend into %rdx (look into the cqto instr): 
+       * idivq val -> divide %rdx:%rax by val . *)
+      | L.Divide -> "movq " ^ opnd ^ ", %rdx\ncqto\nidivq " ^ opnd
+    in
+    result
   in
   (* For a given IR instruction, returns the string form. *)
   let string_of_instr instr = 
@@ -36,9 +41,8 @@ let string_of_asm ir =
        let instr2 = "movq %rax, " ^ (asm_of_temp temp) in
        instr1 ^ "\n" ^ instr2
      | IR.BinOp (temp, optr, op1, op2) ->
-       let optr_str = instr_of_op optr in 
        let instr1 = "movq " ^ asm_of_operand op1 ^ ", %rax" in
-       let instr2 = optr_str ^ asm_of_operand op2 ^ ", %rax" in
+       let instr2 = instr_of_op optr op2 in 
        let instr3 = "movq %rax, " ^ asm_of_temp temp in
        instr1 ^ "\n" ^ instr2 ^ "\n" ^ instr3)
   in
