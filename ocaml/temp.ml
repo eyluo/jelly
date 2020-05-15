@@ -9,8 +9,9 @@ let counter = ref 0
 let create () =
   let increment' () =
     counter := !counter + 1;
-    let idx = !counter in "%t" ^ (string_of_int idx)
+    let idx = !counter in "t" ^ (string_of_int idx)
   in
   increment' ()
 
 let string_of_temp t = t
+let int_of_temp t = Scanf.sscanf t "t%d" (fun x -> x)

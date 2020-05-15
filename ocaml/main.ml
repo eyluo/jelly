@@ -75,10 +75,16 @@ let () =
   let prog = P.parse_program (L.create "../tests/abc.test") in
   print_endline (Ast.string_of_program prog);
   T.typecheck prog;
-  print_endline (IR.string_of_ir (IR.lower_program prog));
   let prog = P.parse_program (L.create "../tests/statements.test") in
   print_endline (Ast.string_of_program prog);
   T.typecheck prog;
+  let ir_prog = IR.lower_program prog in
+  print_endline (IR.string_of_ir ir_prog);
+  let asm = Asm.string_of_asm ir_prog in
+  Asm.asm_to_file asm;
+  let (_ : Core.Unix.Exit_or_signal.t) = Core.Unix.system "gcc -c out.s -o out.o" in
+  let (_ : Core.Unix.Exit_or_signal.t) = Core.Unix.system "gcc out.o runtime.c -o out" in
+  let (_ : Core.Unix.Exit_or_signal.t) = Core.Unix.system "./out" in
   print_endline (IR.string_of_ir (IR.lower_program prog));
   let prog = P.parse_program (L.create "../tests/onevar.test") in
   print_endline (Ast.string_of_program prog);
