@@ -7,19 +7,19 @@ import (
 	"unicode"
 )
 
-type Op int
-type Tok int
+type OpType int
+type TokenType int
 
 const (
 	// Op (operators)
-	Pow Op = iota
+	Pow OpType = iota
 	Plus
 	Minus
 	Times
 	Divide
 
 	// Tok (tokens)
-	Symbol Tok = iota
+	Symbol TokenType = iota
 	IntVal
 	Operator
 	Eq
@@ -31,8 +31,8 @@ const (
 )
 
 type Token struct {
-	Type Tok
-	Optr Op
+	Type TokenType
+	Optr OpType
 	Sym  string
 	Val  int
 }
@@ -42,7 +42,7 @@ type T struct {
 	tokens []*Token
 }
 
-func (op Op) ToString() string {
+func (op OpType) ToString() string {
 	switch op {
 	case Pow:
 		return "^"
