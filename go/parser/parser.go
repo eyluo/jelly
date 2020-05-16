@@ -1,6 +1,8 @@
 package parser
 
 import (
+	"errors"
+
 	"github.com/eyluo/jelly/ast"
 	"github.com/eyluo/jelly/lexer"
 )
@@ -12,10 +14,10 @@ const (
 	right
 )
 
-func ParseStmt(lxr *lexer.T) *ast.Stmt {
-	return nil
+func ParseStmt(lxr *lexer.T) (*ast.Stmt, error) {
+	return nil, errors.New("not yet implemented")
 }
 
-func ParseProgram(lxr *lexer.T) *ast.Program {
-	return nil
+func ParseProgram(lxr *lexer.T) (*ast.Program, error) {
+	return nil, errors.New("not yet implemented")
 }
