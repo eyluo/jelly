@@ -132,7 +132,13 @@ func newLexer(file string) (*T, error) {
 			// HERE: i'm pretty sure this needs to be here so we lex the next character.
 			i--
 
-			token = &Token{Type: Symbol, Sym: temp}
+			// TODO: add more keyword checks here.
+			switch temp {
+			case "return":
+				token = &Token{Type: Return}
+			default:
+				token = &Token{Type: Symbol, Sym: temp}
+			}
 		} else {
 			switch ch {
 			case '=':
