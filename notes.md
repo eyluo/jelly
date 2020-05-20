@@ -352,12 +352,87 @@ Two temps __interfere__ when both are live at a given program point.
 t1 and t5 do not interfere because they are never alive at the same program point.
 
 Graph coloring:
-P1: Given interference data, can the temporaries be reg-allocated with k-registers?
-P2: Given a graph, can the graph be colored with k colors? (Color each vertex such that no two vertices with an edge between them are the same color.)
+__P1:__ Given interference data, can the temporaries be reg-allocated with k-registers?
+__P2:__ Given a graph, can the graph be colored with k colors? (Color each vertex such that no two vertices with an edge between them are the same color.)
 Reduce problem 1 to problem 2.
 Pre-2005 paper-worthy challenge: show that the graph generated from the reduction is "chordal." (Chordal graphs can be colored in polynomial time.)
 
+__Solution:__
+Reduce problem 1 to problem 2 by creating `n` nodes corresponding to the `n` temporaries. Connect nodes if their temporaries interfere (this is known as an __interference graph__). Perform a graph coloring using `k` colors for `k` registers.
+
+Interference edge (solid line -----------)
+Move edge (dashed line - - - - -)
+in interference graphs. Treat the same when coloring graph. Try to merge vertices along move edges.
+
 Later: linear allocation and hardware limitations.
+
+So far, we've lowered `ast -> triple IR -> two address IR (x86) -> machine code`.
+Where should we do register allocation? Feasibly can be done between `IR`'s or before machine code.
+- Register allocation before two-address IR
+    - `-` You're doing liveness on a three-address format, but you want to know the interference edges for the eventual two-address format. This isn't impossible, but there are edge cases.
+    - `-` Lowering after reg-alloc has more edge cases
+        - If we register alloc between `IR`'s, you might accidentally stomp on the destination. Implement a check to make sure that this doesn't happen.
+- Register allocation after two-address IR
+    - `+` You're doing liveness analysis on the code right before it emitted, so you are more confident that your register alocation will actually be correct.
+    - `-` Lowering to two-address form breaks SSA. Lowering from triple to two-address IR goes from side-effect-free to mutating state, and SSA has really nice properties.
+    - `-` Lose ability to leverage commutativity to save copies.
+        - LLVM solves this by doing "local thinking" to determine which operation to do in 3-to-2 lowering, and pick the one with fewer copies.
+
+### Liveness
+
+```
+mov $3, %t1     
+(%t1)   
+mov $4, %t2     
+(%t1, %t2)
+mov %t1, %t3    
+(%t2, %t3)
+add %t2, %t3    
+(%t3)
+mov %t3, %rax   
+(%rax)
+```
+
+- Liveness annotation can be implemented in O(n) (single pass).
+- Live-range of a temporary begins the first time it's defined
+- Live-range of a temporary ends when the temp is no longer being used.
+- By iterating backwards, we can annotate every program point!
+
+```python
+G = graph()
+currently_live = set()
+for instr in reversed(program):
+    uses = uses(instr)
+    defs = defs(instr)
+    currently_live.remove_all(defs)
+    currently_live.add_all(uses)
+    add_innterference_edges(G, for all pairs in currently_live)
+G.color() # -> Hashtbl[vertex, color]
+```
+
+__Observation:__ for all of our programs, `%rax` should be __live-out__ of the basic block.
+For a temporary to be __live-in__ of the basic block, it must be __live-out__ of all incoming basic blocks.
+
+### Handling physical register constraints (pre-coloring)
+
+- What if a temp _has_ to be in `%rcx`? How do we show this?
+- If you have 16 physical registers, then in addition to all of your nodes for your temporaries and all the edges betweenn them, add a 16-clique of nodes for your physical registers. Now you can add interference nodes between temporaries and physical registers.
+- Two parts to register constraints:
+    - Temporaries can interfere with physical registers. Adding the 16-clique allows us to directly map from physical registers to colors because every color will only have a unique physical register.
+    - Temporaries can interfere with temporaries.
+
+# Control Flow
+- Earlier, we discussed basic blocks.
+- Envision control flow as a directed graph in which edges are potential jumps.
+- Strings of nodes with one in-edge and one-edge can all be collapsed into a basic block, or a "mega-instruction" as Henry calls it.
+- Only need to add one type of instruction (`jmp`, `condjmp`), which outputs which basic block to jump to.
+
+### Writing a control flow compiler:
+1. Write a one basic block compiler.
+2. Run it n times for n basic blocks.
+3. ??? (AKA __dataflow analysis__)
+4. Profit.
+
 
 ### Using hashtables
 - Key: `Symbol.t`
