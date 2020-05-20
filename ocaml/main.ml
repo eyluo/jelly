@@ -15,7 +15,7 @@ let () =
       | L.Eof -> acc
       | _ -> acc_tokens (acc ^ tok_str ^ ";")
     in
-    let result = "[ " ^ (acc_tokens "") ^ " ]\n" in
+    let result = "[ " ^ acc_tokens "" ^ " ]\n" in
     print_string result
   in
 

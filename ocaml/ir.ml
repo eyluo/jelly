@@ -50,13 +50,13 @@ let rec lower_program program =
 let string_of_ir ir = 
   let string_of_operand op = 
     match op with
-    | Immediate i -> (string_of_int i)
+    | Immediate i -> string_of_int i
     | Temporary t -> Temp.string_of_temp t
   in
   let string_of_instr instr = 
     match instr with
-    | Store (t, op) -> (Temp.string_of_temp t) ^ " = " ^ (string_of_operand op)
-    | BinOp (t, optr, op1, op2) -> (Temp.string_of_temp t) ^ " = " ^ (string_of_operand op1) ^ (Lexer.string_of_op optr) ^ (string_of_operand op2)
+    | Store (t, op) -> Temp.string_of_temp t ^ " = " ^ string_of_operand op
+    | BinOp (t, optr, op1, op2) -> Temp.string_of_temp t ^ " = " ^ string_of_operand op1 ^ Lexer.string_of_op optr ^ string_of_operand op2
   in
   let ir_strs = List.map ir ~f:string_of_instr in
   String.concat ?sep:(Some "\n") ir_strs

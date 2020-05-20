@@ -48,7 +48,7 @@ let string_of_op op =
 let string_of_token tok =
   match tok with
   | Symbol s -> "SYM " ^ s
-  | IntVal i -> "" ^ (string_of_int i)
+  | IntVal i -> "" ^ string_of_int i
   | Operator op -> string_of_op op
   | Eq -> "="
   | LParen -> "("
@@ -87,7 +87,7 @@ let rec next_token lxr =
                 match digit with
                 | '0' .. '9' -> 
                   lxr.pos := !(lxr.pos) + 1; 
-                  parse_digits (num_str ^ (Char.to_string digit))
+                  parse_digits (num_str ^ Char.to_string digit)
                 (* Ints should not have letters in them. *)
                 | 'A' .. 'Z' | 'a' .. 'z' -> raise (InvalidInt num_str)
                 | _ -> num_str
@@ -106,7 +106,7 @@ let rec next_token lxr =
                 | 'A' .. 'Z' | 'a' .. 'z'
                 | '0' .. '9' -> 
                   lxr.pos := !(lxr.pos) + 1; 
-                  parse_symbol (str ^ (Char.to_string c))
+                  parse_symbol (str ^ Char.to_string c)
                 | _ -> str
               in result
           in

@@ -11,7 +11,7 @@ let reset () = let () = counter := 0 in ()
 let create () =
   let increment' () =
     counter := !counter + 1;
-    let idx = !counter in "t" ^ (string_of_int idx)
+    let idx = !counter in "t" ^ string_of_int idx
   in
   increment' ()
 

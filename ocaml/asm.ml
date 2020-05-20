@@ -38,7 +38,7 @@ let string_of_asm ir =
      | IR.Store (temp, op) -> 
        let operand_str = asm_of_operand op in
        let instr1 = "movq " ^ operand_str ^ ", %rax" in
-       let instr2 = "movq %rax, " ^ (asm_of_temp temp) in
+       let instr2 = "movq %rax, " ^ asm_of_temp temp in
        instr1 ^ "\n" ^ instr2
      | IR.BinOp (temp, optr, op1, op2) ->
        let instr1 = "movq " ^ asm_of_operand op1 ^ ", %rax" in
