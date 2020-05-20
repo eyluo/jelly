@@ -271,7 +271,93 @@ binop() -> ??? # left as an exercise for the reader
 return() -> ??? # left as an exercise for the reader
 ```
 
+# Error messages
+
+```ocaml
+module Mark = 
+    type 'a t
+
+    (* object -> startPosition -> endPosition -> mark *)
+    val create : 'a -> int * int -> int * int -> 'a t
+    val obj : 'a t -> 'a
+    val map : 'a t -> f:('a -> 'b) -> 'b t
+    val start
+    val stop
+    (* steal metadata in 'b t *)
+    val with_mark : 'a -> 'b t -> 'a t 
+    (* steal start of 'a, stop of 'a, and assign to 'c *)
+    val create_from_range : 'a t -> 'b t -> 'c -> 'c t 
+    (* Mark is our functor because Mark takes a type t and transforms (lifts) it
+     * to be a marked 'a. *)
+
+     (* lifting operation lifts the transformation f from the realm of objects
+      * to the realm of "marked" objects. *)
+     val f : 'a -> 'b
+     val f' : 'a t -> 'b t
+
+
+     type exp =
+        | BinOp of Lexer.op * mexp * mexp
+        ...
+     and mexp = exp Mark.t
+
+```
+
+### Addendum on polymorphism
+
+- __Polymorphism__: working with different types
+- Subtype polymorphism (doing a thing that works with certain subtypes of a certain type.)
+```
+class Animal:
+    def speak() : String
+
+class Dog : Animal
+class Cat : Animal
+
+List animals = List<Animal>()
+animals.append(Dog())
+animals.append(Cat())
+for a in animals: a.speak()
+```
+- Ad-hoc polymorphism (like so-so kind of version of polymorphism... generally considered a bad idea by language designers because interacts extremely poorly with implicit casting rules.)
+```
+int foo(String x)
+int foo(int x)
+
+foo(3)
+```
+- Parametric polymorphism (\forall of polymorphism)
+```
+forall t1, forall t2, map : (t1 -> t2) -> t1 list -> t2 list
+```
+- Yaron Minsky (of Jane Street fame (so says Henry Nelson)): __FP is good because in writing large programs, you pretty much always want parametric polymorphism as your main way of separating concerns.__
+
 # Register allocation
+
+```
+t1 = 3
+t2 = 5
+t3 = t1 + t2
+t4 = t3 + t1
+t5 = t3 + t4
+return t5
+```
+
+- Which temps can be assigned to the same register?
+    - t1 and t5 are never used at the same time.
+
+A temporary is __live__ when its value will be used in the future.
+A __program point__ is between two instructions.
+Two temps __interfere__ when both are live at a given program point.
+t1 and t5 do not interfere because they are never alive at the same program point.
+
+Graph coloring:
+P1: Given interference data, can the temporaries be reg-allocated with k-registers?
+P2: Given a graph, can the graph be colored with k colors? (Color each vertex such that no two vertices with an edge between them are the same color.)
+Reduce problem 1 to problem 2.
+Pre-2005 paper-worthy challenge: show that the graph generated from the reduction is "chordal." (Chordal graphs can be colored in polynomial time.)
+
+Later: linear allocation and hardware limitations.
 
 ### Using hashtables
 - Key: `Symbol.t`

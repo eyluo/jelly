@@ -25,13 +25,13 @@ let rec string_of_exp e =
        | L.Minus -> "-"
        | L.Divide -> "/"
        | L.Times -> "*")
-    in "(" ^ (string_of_exp e1) ^ op_str ^ (string_of_exp e2) ^ ")"
+    in "(" ^ string_of_exp e1 ^ op_str ^ string_of_exp e2 ^ ")"
   | IntVal i -> string_of_int i
 
 let string_of_stmt s = 
   match s with
-  | Assign (s, e2) -> (S.string_of_symbol s) ^ " = " ^ (string_of_exp e2) ^ "; "
-  | Return e -> "return " ^ (string_of_exp e) ^ "; "
+  | Assign (s, e2) -> S.string_of_symbol s ^ " = " ^ string_of_exp e2 ^ "; "
+  | Return e -> "return " ^ string_of_exp e ^ "; "
 
 let string_of_program ss = 
   let stmts = String.concat (List.map ss ~f:string_of_stmt) in

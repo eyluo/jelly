@@ -3,6 +3,7 @@ open Core
 exception TypeError of string
 
 let typecheck program =
+  Temp.reset ();
   let seen = Hash_set.create (module Symbol) in
   (* Ensures that an expression contains symbols we've seen so far. *)
   let rec valid_exp exp =

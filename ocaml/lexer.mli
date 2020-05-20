@@ -16,11 +16,12 @@ type token =
   | Return
   | Eof
 
-type lexer
+type t
 
+val string_of_op : op -> string
 val string_of_token : token -> string
 
-val create : string -> lexer
-val pop : lexer -> token
-val peek : lexer -> token
-val drop : lexer -> unit
+val create : string -> t
+val pop : t -> token
+val peek : t -> token
+val drop : t -> unit

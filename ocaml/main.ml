@@ -3,6 +3,7 @@ exception TestFail of string
 module L = Lexer
 module P = Parser
 module T = Typecheck
+module IR = Ir
 
 let () = 
   (* Prints all of the tokens. *)
@@ -14,7 +15,7 @@ let () =
       | L.Eof -> acc
       | _ -> acc_tokens (acc ^ tok_str ^ ";")
     in
-    let result = "[ " ^ (acc_tokens "") ^ " ]\n" in
+    let result = "[ " ^ acc_tokens "" ^ " ]\n" in
     print_string result
   in
 
@@ -64,13 +65,35 @@ let () =
   print_endline "Verifying tokens of programs...\n";
 
   print_tokens (L.create "../tests/assignment.test");
-  print_tokens (L.create "../tests/abc.test");
-  print_tokens (L.create "../tests/statements.test");
+  print_tokens (L.create "../tests/legal/abc.test");
+  print_tokens (L.create "../tests/legal/statements.test");
 
   (* Prints ASTs for programs to ensure they match with the test files. *)
   print_newline ();
   print_endline "Verifying ASTs of programs...\n";
 
+  let prog = P.parse_program (L.create "../tests/legal/abc.test") in
+  print_endline (Ast.string_of_program prog);
+  T.typecheck prog;
+  let ir_prog = IR.lower_program prog in
+
+  print_endline (IR.string_of_ir ir_prog);
+  let prog = P.parse_program (L.create "../tests/legal/statements.test") in
+  print_endline (Ast.string_of_program prog);
+  T.typecheck prog;
+  let ir_prog = IR.lower_program prog in
+  print_endline (IR.string_of_ir ir_prog);
+
+  let prog = P.parse_program (L.create "../tests/legal/onevar.test") in
+  print_endline (Ast.string_of_program prog);
+  T.typecheck prog;
+  print_endline (IR.string_of_ir (IR.lower_program prog));
+
+  (* Illegal program tests. *)
+  print_newline ();
+  print_endline "Testing illegal programs...\n";
+
+  (* Program without a return statement. *)
   let prog = P.parse_program (L.create "../tests/assignment.test") in
   print_endline (Ast.string_of_program prog);
   let () = 
@@ -79,23 +102,16 @@ let () =
     | T.TypeError msg -> print_endline msg
     | _ -> raise (TestFail "assignment.test does not have a return statement")
   in
-  let prog = P.parse_program (L.create "../tests/abc.test") in
-  print_endline (Ast.string_of_program prog);
-  T.typecheck prog;
-  let prog = P.parse_program (L.create "../tests/statements.test") in
-  print_endline (Ast.string_of_program prog);
-  T.typecheck prog;
+
+  (* Program that references an undefined variable. *)
   let prog = P.parse_program (L.create "../tests/bad/early_ref.test") in
+  print_endline (Ast.string_of_program prog);
   let () = 
     try T.typecheck prog
     with
     | T.TypeError msg -> print_endline msg
     | _ -> raise (TestFail "early_ref.test references e early")
   in
-
-  (* Illegal program tests. *)
-  print_newline ();
-  print_endline "Testing illegal programs...\n";
 
   (* Try to lex a program with illegal variable name. *)
   let () = 
@@ -106,7 +122,27 @@ let () =
   in
 
   (* Try to parse a program with illegal assignment. *)
-  try let (_ : Ast.program) = P.parse_program (L.create "../tests/bad/flipped_assignment.test") in ()
-  with
-  | P.ParserError s -> print_endline s
-  | _ -> raise (TestFail "flipped_assignment.test reverses assignment order")
+  let () = 
+    try let (_ : Ast.program) = P.parse_program (L.create "../tests/bad/flipped_assignment.test") in ()
+    with
+    | P.ParserError s -> print_endline s
+    | _ -> raise (TestFail "flipped_assignment.test reverses assignment order")
+  in
+
+
+  (* After the tests, try to compile something! *)
+  let compile fname = 
+    let fpath = "../tests/legal/" ^ fname ^ ".test" in
+    let lexer = L.create fpath in
+    let prog = P.parse_program lexer in
+    T.typecheck prog;
+    let ir_prog = IR.lower_program prog in
+    let asm = Asm.string_of_asm ir_prog in
+    Asm.asm_to_file ("bin/" ^ fname ^ ".s") asm;
+    let (_ : Core.Unix.Exit_or_signal.t) = Core.Unix.system ("gcc -c bin/" ^ fname ^ ".s -o bin/" ^ fname ^ ".o") in
+    let (_ : Core.Unix.Exit_or_signal.t) = Core.Unix.system ("gcc bin/" ^ fname ^ ".o runtime.c -o bin/" ^ fname) in
+    let (_ : Core.Unix.Exit_or_signal.t) = Core.Unix.system ("./bin/" ^ fname) in
+    ()
+  in
+
+  List.iter compile ["abc" ; "statements" ; "onevar"; "div"]
