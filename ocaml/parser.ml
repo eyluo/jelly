@@ -47,15 +47,15 @@ let parse lexer =
           | Right -> prec
         in
         let rhs = parse_expr next_min_prec in
-        let exp = Mark.create  (Ast.Operator (op, lhs, rhs)) (0,0) (0,0)
+        let exp = Mark.create_from_range lhs rhs (Ast.Operator (op, lhs, rhs))
         in parse_expr_prec min_prec exp
     | _ -> lhs
   and parse_atom () =
     let mtok = L.pop lexer in
     let tok = Mark.obj mtok in
     match tok with
-    | L.IntVal i -> Mark.create (Ast.IntVal i) (0,0) (0,0)
-    | L.Symbol s -> Mark.create (Ast.Var (S.create s)) (0,0) (0,0)
+    | L.IntVal i -> Mark.with_mark (Ast.IntVal i) mtok
+    | L.Symbol s -> Mark.with_mark (Ast.Var (S.create s)) mtok
     | L.LParen ->
       let e = parse_expr 0 in
       let mtok2 = L.pop lexer in
@@ -76,9 +76,9 @@ let rec parse_stmt lexer =
       let meq = L.pop lexer in
       let eq = Mark.obj meq in
       (match eq with
-       | L.Eq -> Mark.create (Ast.Assign (S.create s, parse lexer)) (0,0) (0,0)
+       | L.Eq -> Mark.with_mark (Ast.Assign (S.create s, parse lexer)) mtok
        | _ -> raise (ParserError "var assignment: should be followed by ="))
-    | L.Return -> Mark.create (Ast.Return (parse lexer)) (0,0) (0,0)
+    | L.Return -> Mark.with_mark (Ast.Return (parse lexer)) mtok
     (* This only exists for empty-line commands. *)
     | L.Delim -> parse_stmt lexer
     | _ -> raise (ParserError "statement does not begin with assignment or return")
