@@ -30,6 +30,7 @@ let run_tests () =
     else test_peek lxr
   in 
 
+
   (* Prints tokens to ensure they match with the test files. *)
   print_newline ();
   print_endline "Verifying tokens of arithmetic expressions...\n";
@@ -113,6 +114,14 @@ let run_tests () =
     with
     | T.TypeError msg -> print_endline msg
     | _ -> raise (TestFail "early_ref.test references e early")
+  in
+
+  (* Try to lex a program with illegal operator. *)
+  let () = 
+    try print_tokens (L.create "../tests/bad/illegalchar.test")
+    with
+    | L.InvalidToken _ -> print_endline "caught illegal token"
+    | _ -> raise (TestFail "illegalchar.test has illegal operator")
   in
 
   (* Try to lex a program with illegal variable name. *)

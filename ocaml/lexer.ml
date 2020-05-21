@@ -90,6 +90,7 @@ let rec next_token lxr =
   let incr_pos r c = lxr.idx := !(lxr.idx) + 1; lxr.pos := (r, c+1); in
   let incr_pos_new_row r = lxr.idx := !(lxr.idx) + 1; lxr.pos := (r+1, 1); in
   let get_ch () = String.get lxr.file !(lxr.idx) in
+  let lxr_print_err = Err.print lxr.file lxr.fname in
   let result = 
     if !(lxr.idx) = lxr.length then M.create Eof !(lxr.pos) !(lxr.pos)
     else 
@@ -117,7 +118,9 @@ let rec next_token lxr =
                   incr_pos r c;
                   parse_digits (num_str ^ Char.to_string digit)
                 (* Ints should not have letters in them. *)
-                | 'A' .. 'Z' | 'a' .. 'z' -> raise (InvalidInt (invalid_loc ()))
+                | 'A' .. 'Z' | 'a' .. 'z' -> 
+                  lxr_print_err (Mark.create digit !(lxr.pos) !(lxr.pos));
+                  raise (InvalidInt (invalid_loc ()))
                 | _ -> num_str
               in result
           in 
@@ -160,7 +163,9 @@ let rec next_token lxr =
             | '/' -> Operator Divide
             | '(' -> LParen
             | ')' -> RParen
-            | _ -> raise (InvalidToken (invalid_loc ()))
+            | _ -> 
+              lxr_print_err (M.create ch (r,c) !(lxr.pos));
+              raise (InvalidToken (invalid_loc ()))
           in 
           incr_pos r c;
           M.create t (r,c) !(lxr.pos)
