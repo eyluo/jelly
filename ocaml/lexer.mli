@@ -1,6 +1,6 @@
 (* Lexer interface. *)
 
-exception InvalidToken of char
+exception InvalidToken of string
 exception InvalidInt of string
 
 type op = Pow | Plus | Minus | Times | Divide
