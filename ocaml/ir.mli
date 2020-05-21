@@ -8,7 +8,7 @@ type instr =
 
 type t = instr list
 
-val lower_exp : Temp.t -> Ast.exp -> t
+val lower_exp : Temp.t -> Ast.mexp -> t
 val lower_program : Ast.program -> t
 
 val string_of_ir : t -> string

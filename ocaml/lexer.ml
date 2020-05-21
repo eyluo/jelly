@@ -3,6 +3,8 @@
 
 open Core
 
+module M = Mark
+
 (* Defines an exception if we encounter an invalid token. *)
 exception InvalidToken of char
 exception InvalidInt of string
@@ -22,12 +24,15 @@ type token =
   | Return
   | Eof
 
+type mtoken = token Mark.t
+
 (* Defines a custom lexer type. *)
 type t = {
   file : string;                  (* File contents *)
   length : int;                   (* Length of file contents *)
-  pos : int ref;                  (* Index into file contents *)
-  saved_tok : token option ref    (* Last token seen from peek *)
+  pos : Mark.pos ref;
+  idx : int ref;                  (* Index into file contents *)
+  saved_tok : mtoken option ref    (* Last token seen from peek *)
 }
 
 (* Stolen from my boy Henry. This takes a file name and returns the string
@@ -45,48 +50,54 @@ let string_of_op op =
   | Divide -> "/"
 
 (* For debugging: converts a token into a user-readable string. *)
-let string_of_token tok =
-  match tok with
-  | Symbol s -> "SYM " ^ s
-  | IntVal i -> "" ^ string_of_int i
-  | Operator op -> string_of_op op
-  | Eq -> "="
-  | LParen -> "("
-  | RParen -> ")"
-  | Delim -> ";"
-  | Return -> "return"
-  | Eof -> "EOF"
-
+let string_of_token mtok =
+  let tok = Mark.obj mtok in
+  let tok_str = 
+    match tok with
+    | Symbol s -> "SYM " ^ s
+    | IntVal i -> "" ^ string_of_int i
+    | Operator op -> string_of_op op
+    | Eq -> "="
+    | LParen -> "("
+    | RParen -> ")"
+    | Delim -> ";"
+    | Return -> "return"
+    | Eof -> "EOF"
+  in
+  let (r1, c1) = Mark.start mtok in
+  let (r2, c2) = Mark.stop mtok in
+  tok_str ^ " (" ^ string_of_int r1 ^ ", " ^ string_of_int c1 ^ ")" ^ ", (" ^ string_of_int r2 ^ ", " ^ string_of_int c2 ^ ")"
 (* Creates a new lexer. *)
 let create fname = 
   let file = slurp fname in
   let result = {
     file = file;
     length = String.length file;
-    pos = ref 0;
+    pos = ref (1, 1);
+    idx = ref 0;
     saved_tok = ref None;
   } in result
 
 (* Fetches the next token from the lexer. *)
 let rec next_token lxr = 
   let result = 
-    if !(lxr.pos) = lxr.length then Eof
+    if !(lxr.idx) = lxr.length then Mark.create Eof (0,0) (0,0)
     else 
-      let ch = String.get lxr.file !(lxr.pos) in
+      let ch = String.get lxr.file !(lxr.idx) in
       let token = 
         match ch with
         (* Whitespace produces no token, so skip it. *)
-        | ' ' | '\n' | '\t' | '\r' -> lxr.pos := !(lxr.pos) + 1; next_token lxr
+        | ' ' | '\n' | '\t' | '\r' -> lxr.idx := !(lxr.idx) + 1; next_token lxr
         (* If you encounter a digit, gobble up all of the subsequent numbers *)
         | '0' .. '9' -> 
           let rec parse_digits num_str = 
-            if !(lxr.pos) = lxr.length then num_str
+            if !(lxr.idx) = lxr.length then num_str
             else
-              let digit = String.get lxr.file !(lxr.pos) in
+              let digit = String.get lxr.file !(lxr.idx) in
               let result = 
                 match digit with
                 | '0' .. '9' -> 
-                  lxr.pos := !(lxr.pos) + 1; 
+                  lxr.idx := !(lxr.idx) + 1; 
                   parse_digits (num_str ^ Char.to_string digit)
                 (* Ints should not have letters in them. *)
                 | 'A' .. 'Z' | 'a' .. 'z' -> raise (InvalidInt num_str)
@@ -94,29 +105,31 @@ let rec next_token lxr =
               in result
           in 
           let num = int_of_string (parse_digits "")
-          in IntVal num
+          in Mark.create (IntVal num) (0,0) (0,0)
         (* If you encounter a letter, interpret as a symbol or keyword. *)
         | 'A' .. 'Z' | 'a' .. 'z' ->
           let rec parse_symbol str =
-            if !(lxr.pos) = lxr.length then str
+            if !(lxr.idx) = lxr.length then str
             else
-              let c = String.get lxr.file !(lxr.pos) in
+              let c = String.get lxr.file !(lxr.idx) in
               let result =
                 match c with
                 | 'A' .. 'Z' | 'a' .. 'z'
                 | '0' .. '9' -> 
-                  lxr.pos := !(lxr.pos) + 1; 
+                  lxr.idx := !(lxr.idx) + 1; 
                   parse_symbol (str ^ Char.to_string c)
                 | _ -> str
               in result
           in
           (* Handle return keyword *)
           let sym = parse_symbol "" in 
-          (match sym with
-           (* HERE: I suspect this is where we would extend to
-            * support more keywords in the future. *)
-           | "return" -> Return
-           | _ -> Symbol sym)
+          let kwd = 
+            (match sym with
+             (* HERE: I suspect this is where we would extend to
+               * support more keywords in the future. *)
+             | "return" -> Return
+             | _ -> Symbol sym)
+          in Mark.create kwd (0,0) (0,0) 
         | _ -> 
           let t = 
             match ch with
@@ -130,7 +143,7 @@ let rec next_token lxr =
             | '(' -> LParen
             | ')' -> RParen
             | _ -> raise (InvalidToken ch)
-          in lxr.pos := !(lxr.pos) + 1; t
+          in lxr.idx := !(lxr.idx) + 1; Mark.create t (0,0) (0,0)
       in token
   in result
 
@@ -148,4 +161,4 @@ let peek lxr =
 
 (* Drops the next token from the lexer. Equivalent to pop, but it ignores the
  * token. *)
-let drop lxr = let (_ : token) = pop lxr in ()
+let drop lxr = let (_ : mtoken) = pop lxr in ()

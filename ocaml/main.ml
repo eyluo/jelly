@@ -1,5 +1,6 @@
 exception TestFail of string
 
+module M = Mark
 module L = Lexer
 module P = Parser
 module T = Typecheck
@@ -9,8 +10,9 @@ let () =
   (* Prints all of the tokens. *)
   let print_tokens lxr = 
     let rec acc_tokens acc =
-      let tok = L.pop lxr in
-      let tok_str = L.string_of_token tok in
+      let mtok = L.pop lxr in
+      let tok = M.obj mtok in
+      let tok_str = L.string_of_token mtok in
       match tok with
       | L.Eof -> acc
       | _ -> acc_tokens (acc ^ tok_str ^ ";")
@@ -21,10 +23,10 @@ let () =
 
   (* Ensures peek and pop work as expected. *)
   let rec test_peek lxr = 
-    let tok1 = L.peek lxr in 
-    let tok2 = L.pop lxr in
-    if tok1 <> tok2 then raise (TestFail "peek and pop returned different values!")
-    else if tok1 = L.Eof then ()
+    let mtok1 = L.peek lxr in 
+    let mtok2 = L.pop lxr in
+    if mtok1 <> mtok2 then raise (TestFail "peek and pop returned different values!")
+    else if M.obj mtok1 = L.Eof then ()
     else test_peek lxr
   in 
 

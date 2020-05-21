@@ -1,21 +1,24 @@
 open Core
 
+module M = Mark
 module L = Lexer
 module S = Symbol
 
 type exp = 
-  | Var of S.t
-  | Operator of L.op * exp * exp
+  | Var of Symbol.t
+  | Operator of Lexer.op * mexp * mexp
   | IntVal of int
+and mexp = exp Mark.t
 
 type stmt = 
-  | Assign of S.t * exp
-  | Return of exp
+  | Assign of Symbol.t * mexp
+  | Return of mexp
+type mstmt = stmt Mark.t
 
-type program = stmt list
+type program = mstmt list
 
 let rec string_of_exp e = 
-  match e with
+  match Mark.obj e with
   | Var s -> S.string_of_symbol s
   | Operator (op, e1, e2) -> 
     let op_str = 
@@ -29,7 +32,7 @@ let rec string_of_exp e =
   | IntVal i -> string_of_int i
 
 let string_of_stmt s = 
-  match s with
+  match M.obj s with 
   | Assign (s, e2) -> S.string_of_symbol s ^ " = " ^ string_of_exp e2 ^ "; "
   | Return e -> "return " ^ string_of_exp e ^ "; "
 
