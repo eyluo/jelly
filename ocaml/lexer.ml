@@ -41,6 +41,8 @@ type t = {
 let slurp fname = In_channel.with_file ~binary:false fname 
     ~f:(fun ch -> In_channel.input_all ch)
 
+let file lexer = lexer.file
+let fname lexer = lexer.fname
 
 let string_of_op op =
   match op with

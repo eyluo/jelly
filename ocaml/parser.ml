@@ -62,8 +62,12 @@ let parse lexer =
       let tok2 = Mark.obj mtok2 in
       (match tok2 with
        | L.RParen -> e
-       | _ -> raise (ParserError "Unbalanced parentheses"))
-    | _ -> raise (ParserError "Illegal atom grammar")
+       | _ -> 
+         Err.print (Lexer.file lexer) (Lexer.fname lexer) mtok2;
+         raise (ParserError "Unbalanced parentheses"))
+    | _ -> 
+      Err.print (Lexer.file lexer) (Lexer.fname lexer) mtok;
+      raise (ParserError "Illegal atom grammar")
   in
   parse_expr 0
 
@@ -77,11 +81,15 @@ let rec parse_stmt lexer =
       let eq = Mark.obj meq in
       (match eq with
        | L.Eq -> Mark.with_mark (Ast.Assign (S.create s, parse lexer)) mtok
-       | _ -> raise (ParserError "var assignment: should be followed by ="))
+       | _ -> 
+         Err.print (Lexer.file lexer) (Lexer.fname lexer) meq;
+         raise (ParserError "var assignment: should be followed by ="))
     | L.Return -> Mark.with_mark (Ast.Return (parse lexer)) mtok
     (* This only exists for empty-line commands. *)
     | L.Delim -> parse_stmt lexer
-    | _ -> raise (ParserError "statement does not begin with assignment or return")
+    | _ -> 
+      Err.print (Lexer.file lexer) (Lexer.fname lexer) mtok;
+      raise (ParserError "statement does not begin with assignment or return")
   in stmt
 
 let parse_program lexer =

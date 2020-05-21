@@ -140,4 +140,12 @@ let run_tests () =
     | _ -> raise (TestFail "flipped_assignment.test reverses assignment order")
   in
 
+  (* Try to parse a program with early reference. *)
+  let () = 
+    try let (_ : Ast.program) = P.parse_program (L.create "../tests/bad/flipped_assignment.test") in ()
+    with
+    | P.ParserError s -> print_endline s
+    | _ -> raise (TestFail "flipped_assignment.test reverses assignment order")
+  in
+
   ()

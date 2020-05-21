@@ -20,6 +20,9 @@ type mtoken = token Mark.t
 
 type t
 
+val file : t -> string
+val fname : t -> string
+
 val string_of_op : op -> string
 val string_of_token : mtoken -> string
 
