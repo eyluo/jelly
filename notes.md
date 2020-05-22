@@ -406,7 +406,7 @@ for instr in reversed(program):
     defs = defs(instr)
     currently_live.remove_all(defs)
     currently_live.add_all(uses)
-    add_innterference_edges(G, for all pairs in currently_live)
+    add_interference_edges(G, for all pairs in currently_live)
 G.color() # -> Hashtbl[vertex, color]
 ```
 

@@ -3,7 +3,7 @@ open Core
 exception AssemblyError of string
 
 module L = Lexer
-module IR = Ir
+module IR3 = Ir3
 
 type t = string
 
@@ -14,8 +14,8 @@ let string_of_asm ir =
   (* For an IR operand, gives the corresponding assembly value. *)
   let asm_of_operand op =
     match op with
-    | IR.Immediate num -> "$" ^ (string_of_int num)
-    | IR.Temporary temp -> asm_of_temp temp
+    | IR3.Immediate num -> "$" ^ (string_of_int num)
+    | IR3.Temporary temp -> asm_of_temp temp
   in
   (* For a Lexer.op, gives the corresponding assembly instruction. *)
   let instr_of_op op operand = 
@@ -35,12 +35,12 @@ let string_of_asm ir =
   (* For a given IR instruction, returns the string form. *)
   let string_of_instr instr = 
     (match instr with
-     | IR.Store (temp, op) -> 
+     | IR3.Store (temp, op) -> 
        let operand_str = asm_of_operand op in
        let instr1 = "movq " ^ operand_str ^ ", %rax" in
        let instr2 = "movq %rax, " ^ asm_of_temp temp in
        instr1 ^ "\n" ^ instr2
-     | IR.BinOp (temp, optr, op1, op2) ->
+     | IR3.BinOp (temp, optr, op1, op2) ->
        let instr1 = "movq " ^ asm_of_operand op1 ^ ", %rax" in
        let instr2 = instr_of_op optr op2 in 
        let instr3 = "movq %rax, " ^ asm_of_temp temp in
