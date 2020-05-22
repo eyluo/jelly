@@ -1,3 +1,3 @@
 exception TypeError of string
 
-val typecheck : Ast.program -> unit
+val typecheck : Lexer.t -> Ast.program -> unit

@@ -18,7 +18,8 @@ let seen = Hashtbl.create (module Symbol)
 (* Converts the expression into triple IR and then stores the result in temp. *)
 let lower_exp temp exp =
   let rec lower_exp' temp exp =
-    match exp with
+    let exp' = Mark.obj exp in
+    match exp' with
     | Ast.Var s ->
       (match Hashtbl.find seen s with
        | Some t -> [Store (temp, Temporary t)]
@@ -38,7 +39,8 @@ let rec lower_program program =
   | [] -> []
   | p :: ps ->
     let instr_ir = 
-      (match p with
+      let p' = Mark.obj p in
+      (match p' with
        | Ast.Assign (sym, exp) ->
          let t = Temp.create() in
          let result = lower_exp t exp in
