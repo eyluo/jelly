@@ -75,21 +75,24 @@ let run_tests () =
   print_newline ();
   print_endline "Verifying ASTs of programs...\n";
 
-  let prog = P.parse_program (L.create "../tests/legal/abc.test") in
+  let lexer = L.create "../tests/legal/abc.test" in
+  let prog = P.parse_program lexer in
   print_endline (Ast.string_of_program prog);
-  T.typecheck prog;
-  let ir_prog = IR.lower_program prog in
-
-  print_endline (IR.string_of_ir ir_prog);
-  let prog = P.parse_program (L.create "../tests/legal/statements.test") in
-  print_endline (Ast.string_of_program prog);
-  T.typecheck prog;
+  T.typecheck lexer prog;
   let ir_prog = IR.lower_program prog in
   print_endline (IR.string_of_ir ir_prog);
 
-  let prog = P.parse_program (L.create "../tests/legal/onevar.test") in
+  let lexer = L.create "../tests/legal/statements.test" in
+  let prog = P.parse_program lexer in
   print_endline (Ast.string_of_program prog);
-  T.typecheck prog;
+  T.typecheck lexer prog;
+  let ir_prog = IR.lower_program prog in
+  print_endline (IR.string_of_ir ir_prog);
+
+  let lexer = L.create "../tests/legal/onevar.test" in
+  let prog = P.parse_program lexer in
+  print_endline (Ast.string_of_program prog);
+  T.typecheck lexer prog;
   print_endline (IR.string_of_ir (IR.lower_program prog));
 
   (* Illegal program tests. *)
@@ -97,20 +100,22 @@ let run_tests () =
   print_endline "Testing illegal programs...\n";
 
   (* Program without a return statement. *)
-  let prog = P.parse_program (L.create "../tests/assignment.test") in
+  let lexer = L.create "../tests/assignment.test" in
+  let prog = P.parse_program lexer in
   print_endline (Ast.string_of_program prog);
   let () = 
-    try T.typecheck prog
+    try T.typecheck lexer prog
     with
     | T.TypeError msg -> print_endline msg
     | _ -> raise (TestFail "assignment.test does not have a return statement")
   in
 
   (* Program that references an undefined variable. *)
-  let prog = P.parse_program (L.create "../tests/bad/early_ref.test") in
+  let lexer = L.create "../tests/bad/early_ref.test" in
+  let prog = P.parse_program lexer in
   print_endline (Ast.string_of_program prog);
   let () = 
-    try T.typecheck prog
+    try T.typecheck lexer prog
     with
     | T.TypeError msg -> print_endline msg
     | _ -> raise (TestFail "early_ref.test references e early")

@@ -12,7 +12,7 @@ let () =
     let fpath = "../tests/legal/" ^ fname ^ ".test" in
     let lexer = L.create fpath in
     let prog = P.parse_program lexer in
-    T.typecheck prog;
+    T.typecheck lexer prog;
     let ir_prog = IR.lower_program prog in
     let asm = Asm.string_of_asm ir_prog in
     Asm.asm_to_file ("bin/" ^ fname ^ ".s") asm;

@@ -2,7 +2,9 @@ open Core
 
 exception TypeError of string
 
-let typecheck program =
+let typecheck lexer program =
+  (* TODO: it feels wrong to reset temp's here. Maybe there's a way to not have
+   * to worry about this at all. *)
   Temp.reset ();
   let seen = Hash_set.create (module Symbol) in
   (* Ensures that an expression contains symbols we've seen so far. *)
@@ -20,15 +22,23 @@ let typecheck program =
     | s :: [] -> 
       let s' = Mark.obj s in
       (match s' with
-       | Ast.Return exp -> if valid_exp exp then () else raise (TypeError "unrecognized symbol in return statement")
+       | Ast.Return exp -> 
+         if valid_exp exp then () 
+         else 
+           let () = Err.print (Lexer.file lexer) (Lexer.fname lexer) s in
+           raise (TypeError "unrecognized symbol in return statement")
        | _ -> raise (TypeError "last statement is not a return"))
     | s :: ss ->
       let s' = Mark.obj s in
       (match s' with
-       | Ast.Return _ -> raise (TypeError "return statement in middle of program")
-       | Ast.Assign (s, exp) -> 
+       | Ast.Return _ -> 
+         Err.print (Lexer.file lexer) (Lexer.fname lexer) s;
+         raise (TypeError "return statement in middle of program")
+       | Ast.Assign (str, exp) -> 
          if valid_exp exp then 
-           let () = Hash_set.add seen s in typecheck' ss 
-         else raise (TypeError "unrecognized symbol in assignment statement"))
+           let () = Hash_set.add seen str in typecheck' ss 
+         else 
+           let () = Err.print (Lexer.file lexer) (Lexer.fname lexer) s in
+           raise (TypeError "unrecognized symbol in assignment statement"))
   in
   typecheck' program
