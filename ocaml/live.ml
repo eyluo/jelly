@@ -2,10 +2,38 @@ open Core
 
 module IR2 = Ir2
 
-type t = Temp.t list list
+type t = (Temp.t, Temp.t Hash_set.t) Hashtbl.t
 
 let scan instrs = 
   let seen = Hash_set.create (module Temp) in
+  let result = Hashtbl.create (module Temp) in
+  let add_to_graph () =
+    Hash_set.iter seen ~f:(
+      function x -> Hash_set.iter seen ~f:(
+          function y ->
+            if phys_equal x y then ()
+            else
+              let adj_option = Hashtbl.find result x in
+              let () = match adj_option with
+                | Some adj -> Hash_set.add adj y
+                | None -> 
+                  let adj = Hash_set.create (module Temp) in
+                  let () = Hash_set.add adj y in
+                  let () = Hashtbl.set result ~key:x ~data:adj in
+                  ();
+              in
+              let adj_option = Hashtbl.find result y in
+              let () = match adj_option with
+                | Some adj -> Hash_set.add adj x
+                | None -> 
+                  let adj = Hash_set.create (module Temp) in
+                  let () = Hash_set.add adj x in
+                  let () = Hashtbl.set result ~key:y ~data:adj in
+                  ();
+              in ()
+        )
+    )
+  in
   let rec remove_all defs =
     match defs with
     | [] -> ()
@@ -22,17 +50,14 @@ let scan instrs =
        | Some u' -> Hash_set.add seen u'; add_all us
        | _ -> add_all us)
   in
-  let list_of () = 
-    Hash_set.to_list seen
-  in
-  let rec scan' instrs acc = 
+  let rec scan' instrs = 
     let temp_from_op op = 
       match op with
       | IR2.Immediate _ -> None
       | IR2.Temporary temp -> Some temp
     in
     match instrs with
-    | [] -> acc
+    | [] -> ()
     | i :: is -> 
       let (uses, defs) = 
         match i with 
@@ -41,13 +66,16 @@ let scan instrs =
       in
       remove_all defs;
       add_all uses;
-      let currently_live = list_of () in
-      scan' is (currently_live::acc)
+      add_to_graph ();
+      scan' is
   in
-  scan' (List.rev instrs) []
+  scan' (List.rev instrs);
+  result
 
 let string_of_scan live_scan = 
-  let string_of_elem e = 
-    String.concat ?sep:(Some ", ") (List.map e ~f:(Temp.string_of_temp)) 
-  in
-  String.concat ?sep:(Some ";\n\n") (List.map live_scan ~f:(string_of_elem))
+  String.concat ?sep:(Some "\n") (List.map (Hashtbl.to_alist live_scan) ~f:(
+      function (node, edges) -> 
+        let n = Temp.string_of_temp node in
+        let es = List.map (Hash_set.to_list edges) ~f:(Temp.string_of_temp) in
+        n ^ ": [" ^ (String.concat ?sep:(Some"; ") es) ^ "]"
+    ))

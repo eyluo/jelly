@@ -41,4 +41,4 @@ let string_of_ir instrs =
     | BinOp (op, dest, src) -> Temp.string_of_temp dest ^ " = " ^ string_of_operand src ^Lexer.string_of_op op ^ Temp.string_of_temp dest
   in
   let ir_strs = List.map instrs ~f:string_of_instr in
-  String.concat ?sep:(Some "\n\n") ir_strs
+  String.concat ?sep:(Some "\n") ir_strs
