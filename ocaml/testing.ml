@@ -7,6 +7,7 @@ module T = Typecheck
 module IR3 = Ir3
 module IR2 = Ir2
 module L = Live
+module G = Graph
 
 let run_tests () = 
   (* Prints all of the tokens. *)
@@ -87,7 +88,9 @@ let run_tests () =
   let ir2_prog = IR2.lower_ir ir_prog in
   print_endline (IR2.string_of_ir ir2_prog);
   let livescan = L.scan ir2_prog in
-  print_endline (L.string_of_scan livescan);
+  print_endline (G.string_of_graph livescan);
+  let seq = G.mcs livescan in
+  print_endline (G.string_of_order seq);
 
   let lexer = Lx.create "../tests/legal/statements.test" in
   let prog = P.parse_program lexer in
@@ -99,7 +102,9 @@ let run_tests () =
   let ir2_prog = IR2.lower_ir ir_prog in
   print_endline (IR2.string_of_ir ir2_prog);
   let livescan = L.scan ir2_prog in
-  print_endline (L.string_of_scan livescan);
+  print_endline (G.string_of_graph livescan);
+  let seq = G.mcs livescan in
+  print_endline (G.string_of_order seq);
 
   let lexer = Lx.create "../tests/legal/onevar.test" in
   let prog = P.parse_program lexer in
@@ -111,7 +116,9 @@ let run_tests () =
   let ir2_prog = IR2.lower_ir ir_prog in
   print_endline (IR2.string_of_ir ir2_prog);
   let livescan = L.scan ir2_prog in
-  print_endline (L.string_of_scan livescan);
+  print_endline (G.string_of_graph livescan);
+  let seq = G.mcs livescan in
+  print_endline (G.string_of_order seq);
 
   let lexer = Lx.create "../tests/legal/pmas.test" in
   let prog = P.parse_program lexer in
@@ -123,7 +130,9 @@ let run_tests () =
   let ir2_prog = IR2.lower_ir ir_prog in
   print_endline (IR2.string_of_ir ir2_prog);
   let livescan = L.scan ir2_prog in
-  print_endline (L.string_of_scan livescan);
+  print_endline (G.string_of_graph livescan);
+  let seq = G.mcs livescan in
+  print_endline (G.string_of_order seq);
 
 
   (* Illegal program tests. *)
