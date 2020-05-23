@@ -6,6 +6,10 @@ type t = (Temp.t, Temp.t Hash_set.t) Hashtbl.t
 
 let scan instrs = 
   let seen = Hash_set.create (module Temp) in
+  (* TODO: for debugging. *)
+  (* let string_of_seen () = 
+     "[" ^ String.concat ?sep:(Some "; ") (List.map (Hash_set.to_list seen) ~f:Temp.string_of_temp) ^ "]"
+     in *)
   let result = Hashtbl.create (module Temp) in
   let add_to_graph () =
     Hash_set.iter seen ~f:(
@@ -66,6 +70,7 @@ let scan instrs =
       in
       remove_all defs;
       add_all uses;
+      (* print_endline(string_of_seen ()); *)
       add_to_graph ();
       scan' is
   in
