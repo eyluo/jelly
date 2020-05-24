@@ -32,73 +32,86 @@ let string_of_graph g =
         n ^ ": [" ^ (String.concat ?sep:(Some"; ") es) ^ "]"
     ))
 
-let neighbors g n = Hashtbl.find g n
+let neighbors g n =
+  match Hashtbl.find g n with
+  | Some s -> s
+  | None -> Hash_set.create (module Temp)
 
 let mcs g = 
+  let v = Hash_set.create (module Temp) in
+  let () = Hashtbl.iter_keys g ~f:(fun k -> Hash_set.add v k) in
+
   let lambda = Hashtbl.create (module Temp) in
+  let () = Hash_set.iter v ~f:(fun k -> Hashtbl.set lambda ~key:k ~data:0) in
+
   let reverse_lambda = Hashtbl.create (module Int) in
-  let visited = Hash_set.create (module Temp) in
-  let temp = Hash_set.create (module Temp) in
-  let () = Hashtbl.iter_keys g 
-      ~f:(function x -> 
-          Hashtbl.set lambda ~key:x ~data:0;
-          Hash_set.add temp x;
-        ) 
-  in
-  let () = Hashtbl.set reverse_lambda ~key:0 ~data:temp in
-  let rec mcs' g i w acc = 
-    if i = Hashtbl.length g then List.rev acc
-    else
-      let select_node () =
-        let lambda_opt = Hashtbl.find reverse_lambda w in
-        let () = print_endline(string_of_int w) in
-        let () = Hashtbl.iteri lambda ~f:(fun ~key:t ~data:i -> print_endline(Temp.string_of_temp t ^ ":" ^ string_of_int i)) in
-        match lambda_opt with
-        | Some lambda_set ->
-          let v_opt = Hash_set.find lambda_set ~f:(function n -> not (Hash_set.mem visited n)) in
-          let node = match v_opt with | Some v -> v | _ -> assert false in
-          let nghbrs_opt = neighbors g node in
-          let () = match nghbrs_opt with
-            | Some ns -> 
-              Hash_set.iter ns 
-                ~f:(function n ->
-                    let lambda_opt = Hashtbl.find lambda n in
-                    match lambda_opt with
-                    | Some lambda_n ->
-                      let lambda_n' = lambda_n + 1 in 
-                      let (opt1, opt2) = 
-                        Hashtbl.find reverse_lambda lambda_n, 
-                        Hashtbl.find reverse_lambda lambda_n' 
-                      in
-                      let () = 
-                        match opt1, opt2 with
-                        | Some lset, Some lset' -> 
-                          Hash_set.remove lset n;
-                          Hash_set.add lset' n;
-                        | Some lset, None -> 
-                          let new_temp = Hash_set.create (module Temp) in
-                          Hash_set.remove lset n;
-                          Hash_set.add new_temp n;
-                          Hashtbl.set reverse_lambda ~key:lambda_n' ~data:new_temp;
-                        | _ -> ()
-                      in 
-                      Hashtbl.set lambda ~key:n ~data:lambda_n';
-                      ()
-                    | None -> ()
-                  )
-            | None -> ()
-          in
-          node
-        | None -> assert false
+  let () = Hashtbl.set reverse_lambda ~key:0 ~data:(Hash_set.copy v) in
+
+  let rec mcs' acc = 
+    if Hash_set.length v = 0 then List.rev acc
+    else 
+      let select_node () = 
+        Hashtbl.fold lambda ~init:(Temp.base) 
+          ~f:(fun ~key:k ~data:v k' ->
+              if phys_equal k' Temp.base then k
+              else
+                let v' = Hashtbl.find_exn lambda k' in
+                if v > v' then k else k'
+            ) 
       in
-      let n = select_node () in 
-      Hash_set.add visited n;
-      mcs' g (i+1) w' (n::acc)
-  in mcs' g 0 0 []
+      let update_lambda node =
+        let nghbrs = Hash_set.inter v (neighbors g node) in
+        Hash_set.iter nghbrs ~f:(
+          fun nghbr -> 
+            let nghbr_lm = Hashtbl.find_exn lambda nghbr in
+            Hashtbl.set lambda ~key:nghbr ~data:(nghbr_lm + 1);
+        )
+      in
+
+      let node = select_node () in
+      update_lambda node;
+      Hash_set.remove v node;
+      Hashtbl.remove lambda node;
+      mcs' (node::acc)
+  in
+  mcs' []
 
 let string_of_order t = 
   String.concat ?sep:(Some "; ") (List.map t ~f:(Temp.string_of_temp))
 
-(* let color g nodes = 
-   let ((_ : t), (_ : Temp.t list)) = g, nodes in 
-   Hashtbl.create (module Temp); *)
+let color g nodes = 
+  let result = Hashtbl.create (module Temp) in
+  let () = Hashtbl.iter_keys g ~f:(fun k -> Hashtbl.set result ~key:k ~data:None) in
+  let rec color' g nodes =
+    match nodes with
+    | [] -> ()
+    | n :: ns -> 
+      let color_node () = 
+        let nghbrs = neighbors g n in
+        let colors = Hash_set.create (module Int) in
+        let () = Hash_set.iter nghbrs 
+            ~f:(fun nghbr ->
+                let color_opt = Hashtbl.find_exn result nghbr in
+                match color_opt with | Some c -> Hash_set.add colors c | _ -> ()
+              )
+        in
+        let rec get_lowest_color c =
+          let opt = Hash_set.min_elt colors ~compare:((Int.compare)) in
+          match opt with
+          | Some lowest_neighbor_color ->
+            if c < lowest_neighbor_color then c
+            else 
+              let () = Hash_set.remove colors lowest_neighbor_color in 
+              get_lowest_color (c+1)
+          | None -> c
+        in
+        Hashtbl.set result ~key:n ~data:(Some (get_lowest_color 0));
+      in 
+      let () = color_node () in
+      color' g ns
+  in
+  color' g nodes;
+  Hashtbl.mapi result ~f:(fun ~key:_ ~data:v -> match v with | Some i -> i | None -> assert false)
+
+let string_of_color g = 
+  String.concat ?sep:(Some "\n") (Hashtbl.data (Hashtbl.mapi g ~f:(fun ~key:k ~data:v -> Temp.string_of_temp k ^ ":" ^ string_of_int v)))

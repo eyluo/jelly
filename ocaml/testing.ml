@@ -91,6 +91,8 @@ let run_tests () =
   print_endline (G.string_of_graph livescan);
   let seq = G.mcs livescan in
   print_endline (G.string_of_order seq);
+  let colored = G.color livescan seq in
+  print_endline (G.string_of_color colored);
 
   let lexer = Lx.create "../tests/legal/statements.test" in
   let prog = P.parse_program lexer in
@@ -105,6 +107,8 @@ let run_tests () =
   print_endline (G.string_of_graph livescan);
   let seq = G.mcs livescan in
   print_endline (G.string_of_order seq);
+  let colored = G.color livescan seq in
+  print_endline (G.string_of_color colored);
 
   let lexer = Lx.create "../tests/legal/onevar.test" in
   let prog = P.parse_program lexer in
@@ -119,6 +123,8 @@ let run_tests () =
   print_endline (G.string_of_graph livescan);
   let seq = G.mcs livescan in
   print_endline (G.string_of_order seq);
+  let colored = G.color livescan seq in
+  print_endline (G.string_of_color colored);
 
   let lexer = Lx.create "../tests/legal/pmas.test" in
   let prog = P.parse_program lexer in
@@ -133,6 +139,8 @@ let run_tests () =
   print_endline (G.string_of_graph livescan);
   let seq = G.mcs livescan in
   print_endline (G.string_of_order seq);
+  let colored = G.color livescan seq in
+  print_endline (G.string_of_color colored);
 
 
   (* Illegal program tests. *)
