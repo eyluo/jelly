@@ -1,7 +1,7 @@
 module L = Lexer
 module P = Parser
 module T = Typecheck
-module IR = Ir
+module IR3 = Ir3
 
 let () = 
   (* Comment/uncomment this line to toggle testing. *)
@@ -13,7 +13,7 @@ let () =
     let lexer = L.create fpath in
     let prog = P.parse_program lexer in
     T.typecheck lexer prog;
-    let ir_prog = IR.lower_program prog in
+    let ir_prog = IR3.lower_program prog in
     let asm = Asm.string_of_asm ir_prog in
     Asm.asm_to_file ("bin/" ^ fname ^ ".s") asm;
     let (_ : Core.Unix.Exit_or_signal.t) = Core.Unix.system ("gcc -c bin/" ^ fname ^ ".s -o bin/" ^ fname ^ ".o") in
@@ -22,4 +22,4 @@ let () =
     ()
   in
 
-  List.iter compile ["abc" ; "statements" ; "onevar"; "div"]
+  List.iter compile ["abc" ; "statements" ; "onevar"; "pmas"]

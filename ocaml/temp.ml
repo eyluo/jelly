@@ -6,6 +6,8 @@ type t = string [@@deriving sexp, compare, hash]
  * be a useful way to get rid of this global. *)
 let counter = ref 0
 
+let base = ""
+
 let reset () = let () = counter := 0 in ()
 
 let create () =
