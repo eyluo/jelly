@@ -9,33 +9,30 @@ module IR2 = Ir2
 module L = Live
 module G = Graph
 
-let run_tests () = 
-  (* Prints all of the tokens. *)
-  let print_tokens lxr = 
-    let rec acc_tokens acc =
-      let mtok = Lx.pop lxr in
-      let tok = M.obj mtok in
-      let tok_str = Lx.string_of_token mtok in
-      match tok with
-      | Lx.Eof -> acc
-      | _ -> acc_tokens (acc ^ tok_str ^ ";")
-    in
-    let result = "[ " ^ acc_tokens "" ^ " ]\n" in
-    print_string result
+(* Prints all of the tokens. *)
+let print_tokens lxr = 
+  let rec acc_tokens acc =
+    let mtok = Lx.pop lxr in
+    let tok = M.obj mtok in
+    let tok_str = Lx.string_of_token mtok in
+    match tok with
+    | Lx.Eof -> acc
+    | _ -> acc_tokens (acc ^ tok_str ^ ";")
   in
-
-  (* Ensures peek and pop work as expected. *)
-  let rec test_peek lxr = 
-    let mtok1 = Lx.peek lxr in 
-    let mtok2 = Lx.pop lxr in
-    if mtok1 <> mtok2 then raise (TestFail "peek and pop returned different values!")
-    else if M.obj mtok1 = Lx.Eof then ()
-    else test_peek lxr
-  in 
+  let result = "[ " ^ acc_tokens "" ^ " ]\n" in
+  print_string result
 
 
+(* Ensures peek and pop work as expected. *)
+let rec test_peek lxr = 
+  let mtok1 = Lx.peek lxr in 
+  let mtok2 = Lx.pop lxr in
+  if mtok1 <> mtok2 then raise (TestFail "peek and pop returned different values!")
+  else if M.obj mtok1 = Lx.Eof then ()
+  else test_peek lxr
+
+let _test_lexer () =
   (* Prints tokens to ensure they match with the test files. *)
-  print_newline ();
   print_endline "Verifying tokens of arithmetic expressions...\n";
 
   print_tokens (Lx.create "../tests/add.test");
@@ -48,9 +45,11 @@ let run_tests () =
   print_endline "Verifying peek against pop operations...\n";
 
   test_peek (Lx.create "../tests/whitespace.test");
+  print_newline (); 
+  ()
 
+let _test_ast () = 
   (* Prints ASTs for expressions to ensure they match with the test files. *)
-  print_newline ();
   print_endline "Verifying ASTs of arithmetic expressions...\n";
 
   let ast = P.parse (Lx.create "../tests/add.test") in
@@ -141,10 +140,11 @@ let run_tests () =
   print_endline (G.string_of_order seq);
   let colored = G.color livescan seq in
   print_endline (G.string_of_color colored);
-
-
-  (* Illegal program tests. *)
   print_newline ();
+  ()
+
+let _test_illegal () = 
+  (* Illegal program tests. *)
   print_endline "Testing illegal programs...\n";
 
   (* Program without a return statement. *)
@@ -199,6 +199,10 @@ let run_tests () =
     with
     | P.ParserError s -> print_endline s
     | _ -> raise (TestFail "flipped_assignment.test reverses assignment order")
-  in
+  in ()
 
-  ()
+
+let run_tests () = 
+  _test_lexer ();
+  _test_ast ();
+  _test_illegal ();
