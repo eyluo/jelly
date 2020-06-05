@@ -22,16 +22,15 @@ let print_tokens lxr =
   let result = "[ " ^ acc_tokens "" ^ " ]\n" in
   print_string result
 
-
-(* Ensures peek and pop work as expected. *)
-let rec test_peek lxr = 
-  let mtok1 = Lx.peek lxr in 
-  let mtok2 = Lx.pop lxr in
-  if mtok1 <> mtok2 then raise (TestFail "peek and pop returned different values!")
-  else if M.obj mtok1 = Lx.Eof then ()
-  else test_peek lxr
-
 let _test_lexer () =
+  (* Ensures peek and pop work as expected. *)
+  let rec test_peek lxr = 
+    let mtok1 = Lx.peek lxr in 
+    let mtok2 = Lx.pop lxr in
+    if mtok1 <> mtok2 then raise (TestFail "peek and pop returned different values!")
+    else if M.obj mtok1 = Lx.Eof then ()
+    else test_peek lxr
+  in
   (* Prints tokens to ensure they match with the test files. *)
   print_endline "Verifying tokens of arithmetic expressions...\n";
 
@@ -39,6 +38,8 @@ let _test_lexer () =
   print_tokens (Lx.create "../tests/whitespace.test");
   print_tokens (Lx.create "../tests/bigboys.test");
   print_tokens (Lx.create "../tests/pemdas.test");
+  print_tokens (Lx.create "../tests/legal/bool_abc.test");
+  print_tokens (Lx.create "../tests/legal/bool_int.test");
 
   (* Test peeking against popping. *)
   print_newline ();
@@ -204,5 +205,5 @@ let _test_illegal () =
 
 let run_tests () = 
   _test_lexer ();
-  _test_ast ();
-  _test_illegal ();
+  (* _test_ast ();
+     _test_illegal (); *)

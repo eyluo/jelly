@@ -1,0 +1,4 @@
+bool f00 = 5 == 5;
+bool bar = (4 >= 5) == (true == false);
+bool ba2 = (5 <= 4) && (((5 <= 7)) || (3 > 1));
+return f00 || bar && ba2;
