@@ -3,11 +3,28 @@
 exception InvalidToken of string
 exception InvalidInt of string
 
-type op = Pow | Plus | Minus | Times | Divide
+type op = 
+  | Pow 
+  | Plus 
+  | Minus 
+  | Times 
+  | Divide
+
+  | CompEq
+  | Neq
+  | Less
+  | Leq
+  | Greater
+  | Geq
+  | BoolAnd
+  | BoolOr
 
 type token =
   | Symbol of string
+  | IntDecl
   | IntVal of int
+  | BoolDecl
+  | BoolVal of bool
   | Operator of op
   | Eq
   | LParen

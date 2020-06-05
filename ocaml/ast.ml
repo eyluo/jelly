@@ -21,13 +21,7 @@ let rec string_of_exp e =
   match Mark.obj e with
   | Var s -> S.string_of_symbol s
   | Operator (op, e1, e2) -> 
-    let op_str = 
-      (match op with
-       | L.Pow -> "^"
-       | L.Plus -> "+"
-       | L.Minus -> "-"
-       | L.Divide -> "/"
-       | L.Times -> "*")
+    let op_str = L.string_of_op op
     in "(" ^ string_of_exp e1 ^ op_str ^ string_of_exp e2 ^ ")"
   | IntVal i -> string_of_int i
 

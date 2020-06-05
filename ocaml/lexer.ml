@@ -10,12 +10,29 @@ exception InvalidToken of string
 exception InvalidInt of string
 
 (* Defines the legal operations. *)
-type op = Pow | Plus | Minus | Times | Divide
+type op = 
+  | Pow 
+  | Plus 
+  | Minus 
+  | Times 
+  | Divide
+
+  | CompEq
+  | Neq
+  | Less
+  | Leq
+  | Greater
+  | Geq
+  | BoolAnd
+  | BoolOr
 
 (* Defines legal tokens. *)
 type token =
   | Symbol of string
+  | IntDecl
   | IntVal of int
+  | BoolDecl
+  | BoolVal of bool
   | Operator of op
   | Eq
   | LParen
@@ -51,6 +68,15 @@ let string_of_op op =
   | Minus -> "-"
   | Times -> "*"
   | Divide -> "/"
+  | CompEq -> "=="
+  | Neq -> "!="
+  | Less -> "<"
+  | Leq -> "<="
+  | Greater -> ">"
+  | Geq -> ">="
+  | BoolAnd -> "&&"
+  | BoolOr -> "||"
+
 
 (* For debugging: converts a token into a user-readable string. *)
 let string_of_token mtok =
@@ -58,7 +84,10 @@ let string_of_token mtok =
   let tok_str = 
     match tok with
     | Symbol s -> "SYM " ^ s
-    | IntVal i -> "" ^ string_of_int i
+    | IntDecl -> "int"
+    | IntVal i -> string_of_int i
+    | BoolDecl -> "bool"
+    | BoolVal b -> string_of_bool b
     | Operator op -> string_of_op op
     | Eq -> "="
     | LParen -> "("
@@ -89,87 +118,108 @@ let rec next_token lxr =
     let r, c = !(lxr.pos) in
     Printf.sprintf "%s: line %d, character %d" lxr.fname r c
   in
-  let incr_pos r c = lxr.idx := !(lxr.idx) + 1; lxr.pos := (r, c+1); in
-  let incr_pos_new_row r = lxr.idx := !(lxr.idx) + 1; lxr.pos := (r+1, 1); in
-  let get_ch () = String.get lxr.file !(lxr.idx) in
   let lxr_print_err = Err.print lxr.file lxr.fname in
+  let peek_char () =
+    if !(lxr.idx) = lxr.length then None
+    else let ch = String.get lxr.file !(lxr.idx) in Some ch
+  in
+  let drop_char () = 
+    let incr_pos r c = lxr.idx := !(lxr.idx) + 1; lxr.pos := (r, c+1); in
+    let incr_pos_new_row r = lxr.idx := !(lxr.idx) + 1; lxr.pos := (r+1, 1); in
+    if !(lxr.idx) = lxr.length then ()
+    else
+      let ch = String.get lxr.file !(lxr.idx) in
+      let (r, c) = !(lxr.pos) in
+      match ch with
+      | '\n' -> incr_pos_new_row r
+      | _ -> incr_pos r c
+  in
   let result = 
-    if !(lxr.idx) = lxr.length then M.create Eof !(lxr.pos) !(lxr.pos)
-    else 
-      let ch = get_ch () in
+    match peek_char () with
+    | None -> M.create Eof !(lxr.pos) !(lxr.pos)
+    | Some ch ->
       let (r, c) = !(lxr.pos) in 
       let token = 
         match ch with
-        (* Whitespace produces no token, so skip it. *)
-        | '\n' -> 
-          incr_pos_new_row r;
-          next_token lxr
-        | ' ' | '\t' | '\r' -> 
-          incr_pos r c; 
-          next_token lxr
-        (* If you encounter a digit, gobble up all of the subsequent numbers *)
+        | '\n' | ' ' | '\t' | '\r' -> drop_char (); next_token lxr
+        (* Parsing int *)
         | '0' .. '9' -> 
-          let rec parse_digits num_str = 
-            if !(lxr.idx) = lxr.length then num_str
-            else
-              let (r, c) = !(lxr.pos) in 
-              let digit = get_ch () in
-              let result = 
-                match digit with
-                | '0' .. '9' -> 
-                  incr_pos r c;
-                  parse_digits (num_str ^ Char.to_string digit)
-                (* Ints should not have letters in them. *)
-                | 'A' .. 'Z' | 'a' .. 'z' -> 
-                  lxr_print_err (Mark.create digit !(lxr.pos) !(lxr.pos));
-                  raise (InvalidInt (invalid_loc ()))
-                | _ -> num_str
-              in result
+          let rec parse_int num_str = 
+            match peek_char () with
+            | None -> num_str
+            | Some ch' ->
+              match ch' with 
+              | '0' .. '9' -> drop_char (); parse_int (num_str ^ Char.to_string ch')
+              | 'A' .. 'Z' | 'a' .. 'z' -> 
+                lxr_print_err (Mark.create ch' !(lxr.pos) !(lxr.pos));
+                raise (InvalidInt (invalid_loc ()))
+              | _ -> num_str
           in 
-          let num = int_of_string (parse_digits "")
-          in M.create (IntVal num) (r,c) !(lxr.pos)
-        (* If you encounter a letter, interpret as a symbol or keyword. *)
+          let num = int_of_string (parse_int "") in 
+          M.create (IntVal num) (r,c) !(lxr.pos)
+        (* Parsing symbols *)
         | 'A' .. 'Z' | 'a' .. 'z' ->
-          let rec parse_symbol str =
-            if !(lxr.idx) = lxr.length then str
-            else
-              let (r, c) = !(lxr.pos) in 
-              let ch' = get_ch () in
-              let result =
-                match ch' with
-                | 'A' .. 'Z' | 'a' .. 'z'
-                | '0' .. '9' -> 
-                  incr_pos r c;
-                  parse_symbol (str ^ Char.to_string ch')
-                | _ -> str
-              in result
+          let rec parse_symbol sym =
+            match peek_char () with
+            | None -> sym
+            | Some ch' ->
+              match ch' with
+              | 'A' .. 'Z' | 'a' .. 'z' 
+              | '0' .. '9' -> drop_char (); parse_symbol (sym ^ Char.to_string ch')
+              | _ -> sym
           in
-          (* Handle return keyword *)
-          let sym = parse_symbol "" in 
-          let kwd = 
-            (match sym with
-             (* HERE: I suspect this is where we would extend to
-               * support more keywords in the future. *)
-             | "return" -> Return
-             | _ -> Symbol sym)
-          in M.create kwd (r,c) !(lxr.pos) 
+          let sym = parse_symbol (parse_symbol "") in
+          let sym_token = 
+            match sym with
+            (* HERE: I suspect this is where we would extend to
+             * support more keywords in the future. *)
+            | "int" -> IntDecl
+            | "bool" -> BoolDecl
+            | "true" -> BoolVal true
+            | "false" -> BoolVal false
+            | "return" -> Return
+            | _ -> Symbol sym
+          in M.create sym_token (r,c) !(lxr.pos)
+        (* Parsing operators *)
         | _ -> 
           let t = 
+            drop_char ();
             match ch with
-            | '=' -> Eq
+            | '=' -> 
+              if phys_equal (peek_char ()) (Some '=') then
+                let () = drop_char () in Operator CompEq
+              else Eq
+            | '(' -> LParen
+            | ')' -> RParen
             | ';' -> Delim
+
             | '^' -> Operator Pow
             | '+' -> Operator Plus
             | '-' -> Operator Minus
             | '*' -> Operator Times
             | '/' -> Operator Divide
-            | '(' -> LParen
-            | ')' -> RParen
+
+            | '>' ->
+              if phys_equal (peek_char ()) (Some '=') then
+                let () = drop_char () in Operator Geq
+              else Operator Greater
+            | '<' ->
+              if phys_equal (peek_char ()) (Some '=') then
+                let () = drop_char () in Operator Leq
+              else Operator Less
+            | '&' ->
+              if phys_equal (peek_char ()) (Some '&') then
+                let () = drop_char () in Operator BoolAnd
+              else raise (InvalidToken (invalid_loc ()))
+            | '|' -> 
+              if phys_equal (peek_char ()) (Some '|') then
+                let () = drop_char () in Operator BoolOr
+              else raise (InvalidToken (invalid_loc ()))
+
             | _ -> 
               lxr_print_err (M.create ch (r,c) !(lxr.pos));
               raise (InvalidToken (invalid_loc ()))
           in 
-          incr_pos r c;
           M.create t (r,c) !(lxr.pos)
       in token
   in result

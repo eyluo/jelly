@@ -29,6 +29,7 @@ let string_of_asm ir =
       (* TODO: idivq needs to sign-extend into %rdx (look into the cqto instr): 
        * idivq val -> divide %rdx:%rax by val . *)
       | L.Divide -> "movq " ^ opnd ^ ", %rdx\ncqto\nidivq " ^ opnd
+      | _ -> raise (AssemblyError "mapping not present yet")
     in
     result
   in

@@ -23,6 +23,7 @@ let parse lexer =
     | L.Pow -> (3, Right)
     | L.Plus | L.Minus -> (1, Left)
     | L.Times | L.Divide -> (2, Left)
+    | _ -> (100, Left)
   in
 
   let rec parse_expr min_prec =

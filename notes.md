@@ -438,3 +438,35 @@ For a temporary to be __live-in__ of the basic block, it must be __live-out__ of
 - Key: `Symbol.t`
 - Typechecking for defined variables
 - mapping variables to temporaries
+
+# Booleans
+
+Support `>, >=, <, <=, &&, ||, ==, !=`
+
+(no short circuiting for now)
+
+`>, >=, <, <= : int * int -> bool`
+`==, != : 'a * 'a -> bool`
+`&&, || : bool * bool -> bool`
+
+`&&, || -> andq, orq`
+`==, !=, ... -> cmpq; mov $0, %rax; setcc %ax`
+
+`setcc` must count as a use and define for liveness analysis otherwise the register will never be used. Another solution is to let the IR count the `mov;setcc` as one instruction and emit two assembly instructions when we need to.
+
+How to represent a bool in memory?
+Easy way: in registers, bools still take up 64 bits of a register
+In memory, bools on the stack should probably only take up 1 byte. Keep in mind, though, that stacks are generally 16-byte aligned (x86-64, 8-byte might be okay).
+Lazy method: make bools 8 bytes like ints lmao.
+
+```ocaml
+type stmt = 
+  | Declare of Symbol.t * ty
+  | Assign of Symbol.t * mexp
+  | Return of mexp
+type mstmt = stmt Mark.t
+```
+
+## Type erasure
+
+Front-end concerned with typechecking and representation, and then can be lowered to a more weakly typed version.
