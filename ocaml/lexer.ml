@@ -184,11 +184,12 @@ let rec next_token lxr =
         | _ -> 
           let t = 
             drop_char ();
+            let ch_opt = peek_char () in
             match ch with
             | '=' -> 
-              if phys_equal (peek_char ()) (Some '=') then
-                let () = drop_char () in Operator CompEq
-              else Eq
+              if is_none ch_opt || not (phys_equal '=' (Option.value_exn ch_opt)) then
+                Eq
+              else let () = drop_char () in Operator CompEq
             | '(' -> LParen
             | ')' -> RParen
             | ';' -> Delim
@@ -200,21 +201,21 @@ let rec next_token lxr =
             | '/' -> Operator Divide
 
             | '>' ->
-              if phys_equal (peek_char ()) (Some '=') then
-                let () = drop_char () in Operator Geq
-              else Operator Greater
+              if is_none ch_opt || not (phys_equal '=' (Option.value_exn ch_opt)) then
+                Operator Greater
+              else let () = drop_char () in Operator Geq
             | '<' ->
-              if phys_equal (peek_char ()) (Some '=') then
-                let () = drop_char () in Operator Leq
-              else Operator Less
+              if is_none ch_opt || not (phys_equal '=' (Option.value_exn ch_opt)) then
+                Operator Less
+              else let () = drop_char () in Operator Leq
             | '&' ->
-              if phys_equal (peek_char ()) (Some '&') then
-                let () = drop_char () in Operator BoolAnd
-              else raise (InvalidToken (invalid_loc ()))
+              if is_none ch_opt || not (phys_equal '&' (Option.value_exn ch_opt)) then
+                raise (InvalidToken (invalid_loc ()))
+              else let () = drop_char () in Operator BoolAnd 
             | '|' -> 
-              if phys_equal (peek_char ()) (Some '|') then
-                let () = drop_char () in Operator BoolOr
-              else raise (InvalidToken (invalid_loc ()))
+              if is_none ch_opt || not (phys_equal '|' (Option.value_exn ch_opt)) then
+                raise (InvalidToken (invalid_loc ()))
+              else let () = drop_char () in Operator BoolOr 
 
             | _ -> 
               lxr_print_err (M.create ch (r,c) !(lxr.pos));
