@@ -95,6 +95,8 @@ let _test_ir3 () =
 
   List.iter _test_ir3_iter [
     "../tests/legal/bool_abc.test";
+    "../tests/legal/bool_int.test";
+    "../tests/legal/bool_simple.test";
   ]
 
 let _test_misc () = 
