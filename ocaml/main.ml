@@ -12,6 +12,7 @@ let () =
     let fpath = "../tests/legal/" ^ fname ^ ".test" in
     let lexer = L.create fpath in
     let prog = P.parse_program lexer in
+    print_endline (Ast.string_of_program prog);
     T.typecheck lexer prog;
     let ir_prog = IR3.lower_program prog in
     let asm = Asm.string_of_asm ir_prog in

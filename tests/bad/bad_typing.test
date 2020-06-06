@@ -1,0 +1,4 @@
+int a = 5;
+bool b = true;
+bool c = a || b;
+return 4 && 5;

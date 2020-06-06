@@ -46,8 +46,7 @@ let _test_lexer () =
   print_endline "Verifying peek against pop operations...\n";
 
   test_peek (Lx.create "../tests/whitespace.test");
-  print_newline (); 
-  ()
+  print_newline ()
 
 let _test_parser () = 
   print_endline "Verifying ASTs...";
@@ -57,8 +56,30 @@ let _test_parser () =
   let ast = P.parse (Lx.create "../tests/legal/bool_abc.test") in
   print_endline (Ast.string_of_exp ast);
   let ast = P.parse (Lx.create "../tests/legal/bool_abc.test") in
-  print_endline (Ast.string_of_exp ast);
-  ()
+  print_endline (Ast.string_of_exp ast)
+
+let _test_typecheck () = 
+  print_endline "Verifying typechecking...";
+
+
+  let test_typecheck_exn test = 
+    let lexer = Lx.create test in
+    let prog = P.parse_program lexer in
+    print_string ("Testing " ^ test ^ "... ");
+    let () = 
+      try let () = T.typecheck lexer prog in ()
+      with 
+      | T.TypeError s -> print_endline ("SUCCESS - caught exception: " ^ s)
+      | _ -> raise (TestFail ("FAIL - uncaught exception"))
+    in ()
+  in
+
+  List.iter test_typecheck_exn [
+    "../tests/bad/undeclared.test";
+    "../tests/bad/undeclared_use.test";
+    "../tests/bad/no_return.test";
+    "../tests/bad/bad_typing.test";
+  ]
 
 let _test_misc () = 
   (* Prints ASTs for expressions to ensure they match with the test files. *)
@@ -152,8 +173,7 @@ let _test_misc () =
   print_endline (G.string_of_order seq);
   let colored = G.color livescan seq in
   print_endline (G.string_of_color colored);
-  print_newline ();
-  ()
+  print_newline ()
 
 let _test_illegal () = 
   (* Illegal program tests. *)
@@ -216,5 +236,6 @@ let _test_illegal () =
 
 let run_tests () = 
   _test_lexer ();
-  (* _test_misc ();
-     _test_illegal (); *)
+  _test_typecheck ();
+  (* _test_misc (); *)
+  (* _test_illegal (); *)

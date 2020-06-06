@@ -1,3 +1,3 @@
-type t = Int | Bool
+type t = Int | Bool | Alpha
 
 val string_of_type : t -> string

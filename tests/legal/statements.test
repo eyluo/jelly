@@ -1,7 +1,7 @@
-f00 = 
+int f00 = 
       3 + 4;
       ; ; ;
-bar = 1000;
-baz = f00+
+int bar = 1000;
+int baz = f00+
 bar;
 return f00 * baz;

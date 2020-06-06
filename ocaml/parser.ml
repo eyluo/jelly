@@ -34,7 +34,7 @@ let parse lexer =
     let mtok = L.peek lexer in
     let tok = M.obj mtok in
     match tok with
-    | L.Delim | L.Eof | L.IntVal _ -> L.drop lexer; lhs
+    | L.Delim | L.Eof | L.IntVal _| L.BoolVal _ -> L.drop lexer; lhs
     | L.Operator op ->
       let prec, assoc = op_info op in
       if prec < min_prec then lhs
@@ -56,6 +56,7 @@ let parse lexer =
     let tok = Mark.obj mtok in
     match tok with
     | L.IntVal i -> Mark.with_mark (Ast.IntVal i) mtok
+    | L.BoolVal b -> Mark.with_mark (Ast.BoolVal b) mtok
     | L.Symbol s -> Mark.with_mark (Ast.Var (S.create s)) mtok
     | L.LParen ->
       let e = parse_expr 0 in

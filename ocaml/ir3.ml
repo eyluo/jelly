@@ -31,6 +31,7 @@ let lower_exp temp exp =
       let lower2 = lower_exp' t2 e2 in
       List.concat [lower1 ; lower2 ; [BinOp (temp, op, Temporary t1, Temporary t2)]]
     | Ast.IntVal i -> [Store (temp, Immediate i)]
+    | Ast.BoolVal b -> if b then [Store (temp, Immediate 1)] else [Store (temp, Immediate 0)]
   in
   lower_exp' temp exp
 
@@ -41,6 +42,7 @@ let rec lower_program program =
     let instr_ir = 
       let p' = Mark.obj p in
       (match p' with
+       | Ast.Declare _ -> []
        | Ast.Assign (sym, exp) ->
          let t = Temp.create() in
          let result = lower_exp t exp in

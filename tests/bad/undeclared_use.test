@@ -1,0 +1,2 @@
+int f00 = 5;
+return f00 * bar;
