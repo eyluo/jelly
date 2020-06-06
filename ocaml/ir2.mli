@@ -4,7 +4,7 @@ type operand =
 
 type instr = 
   | Store of Temp.t * operand
-  | BinOp of Lexer.op * Temp.t * operand
+  | BinOp of Lexer.Op.t * Temp.t * operand
 
 type t = instr list
 

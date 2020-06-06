@@ -49,7 +49,18 @@ let _test_lexer () =
   print_newline (); 
   ()
 
-let _test_ast () = 
+let _test_parser () = 
+  print_endline "Verifying ASTs...";
+
+  let ast = P.parse (Lx.create "../tests/legal/bool_abc.test") in
+  print_endline (Ast.string_of_exp ast);
+  let ast = P.parse (Lx.create "../tests/legal/bool_abc.test") in
+  print_endline (Ast.string_of_exp ast);
+  let ast = P.parse (Lx.create "../tests/legal/bool_abc.test") in
+  print_endline (Ast.string_of_exp ast);
+  ()
+
+let _test_misc () = 
   (* Prints ASTs for expressions to ensure they match with the test files. *)
   print_endline "Verifying ASTs of arithmetic expressions...\n";
 
@@ -205,5 +216,5 @@ let _test_illegal () =
 
 let run_tests () = 
   _test_lexer ();
-  (* _test_ast ();
+  (* _test_misc ();
      _test_illegal (); *)

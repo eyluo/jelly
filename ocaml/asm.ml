@@ -22,13 +22,13 @@ let string_of_asm ir =
     let opnd = asm_of_operand operand in
     let result = 
       match op with
-      | L.Pow -> raise (AssemblyError "idk the asm instr for ^ lol")
-      | L.Plus -> "addq " ^ opnd ^ ", %rax"
-      | L.Minus -> "subq " ^ opnd ^ ", %rax"
-      | L.Times -> "imulq " ^ opnd ^ ", %rax"
+      | L.Op.Pow -> raise (AssemblyError "idk the asm instr for ^ lol")
+      | L.Op.Plus -> "addq " ^ opnd ^ ", %rax"
+      | L.Op.Minus -> "subq " ^ opnd ^ ", %rax"
+      | L.Op.Times -> "imulq " ^ opnd ^ ", %rax"
       (* TODO: idivq needs to sign-extend into %rdx (look into the cqto instr): 
        * idivq val -> divide %rdx:%rax by val . *)
-      | L.Divide -> "movq " ^ opnd ^ ", %rdx\ncqto\nidivq " ^ opnd
+      | L.Op.Divide -> "movq " ^ opnd ^ ", %rdx\ncqto\nidivq " ^ opnd
       | _ -> raise (AssemblyError "mapping not present yet")
     in
     result

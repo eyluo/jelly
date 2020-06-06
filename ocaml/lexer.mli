@@ -3,21 +3,23 @@
 exception InvalidToken of string
 exception InvalidInt of string
 
-type op = 
-  | Pow 
-  | Plus 
-  | Minus 
-  | Times 
-  | Divide
+module Op : sig
+  type t = 
+    | Pow 
+    | Plus 
+    | Minus 
+    | Times 
+    | Divide
 
-  | CompEq
-  | Neq
-  | Less
-  | Leq
-  | Greater
-  | Geq
-  | BoolAnd
-  | BoolOr
+    | CompEq
+    | Neq
+    | Less
+    | Leq
+    | Greater
+    | Geq
+    | BoolAnd
+    | BoolOr [@@deriving sexp, compare, hash]
+end
 
 type token =
   | Symbol of string
@@ -25,7 +27,7 @@ type token =
   | IntVal of int
   | BoolDecl
   | BoolVal of bool
-  | Operator of op
+  | Operator of Op.t
   | Eq
   | LParen
   | RParen
@@ -40,7 +42,7 @@ type t
 val file : t -> string
 val fname : t -> string
 
-val string_of_op : op -> string
+val string_of_op : Op.t -> string
 val string_of_token : mtoken -> string
 
 val create : string -> t

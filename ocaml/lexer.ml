@@ -10,21 +10,23 @@ exception InvalidToken of string
 exception InvalidInt of string
 
 (* Defines the legal operations. *)
-type op = 
-  | Pow 
-  | Plus 
-  | Minus 
-  | Times 
-  | Divide
+module Op = struct
+  type t = 
+    | Pow 
+    | Plus 
+    | Minus 
+    | Times 
+    | Divide
 
-  | CompEq
-  | Neq
-  | Less
-  | Leq
-  | Greater
-  | Geq
-  | BoolAnd
-  | BoolOr
+    | CompEq
+    | Neq
+    | Less
+    | Leq
+    | Greater
+    | Geq
+    | BoolAnd
+    | BoolOr [@@deriving sexp, compare, hash]
+end
 
 (* Defines legal tokens. *)
 type token =
@@ -33,7 +35,7 @@ type token =
   | IntVal of int
   | BoolDecl
   | BoolVal of bool
-  | Operator of op
+  | Operator of Op.t
   | Eq
   | LParen
   | RParen
@@ -63,19 +65,19 @@ let fname lexer = lexer.fname
 
 let string_of_op op =
   match op with
-  | Pow -> "^"
-  | Plus -> "+"
-  | Minus -> "-"
-  | Times -> "*"
-  | Divide -> "/"
-  | CompEq -> "=="
-  | Neq -> "!="
-  | Less -> "<"
-  | Leq -> "<="
-  | Greater -> ">"
-  | Geq -> ">="
-  | BoolAnd -> "&&"
-  | BoolOr -> "||"
+  | Op.Pow -> "^"
+  | Op.Plus -> "+"
+  | Op.Minus -> "-"
+  | Op.Times -> "*"
+  | Op.Divide -> "/"
+  | Op.CompEq -> "=="
+  | Op.Neq -> "!="
+  | Op.Less -> "<"
+  | Op.Leq -> "<="
+  | Op.Greater -> ">"
+  | Op.Geq -> ">="
+  | Op.BoolAnd -> "&&"
+  | Op.BoolOr -> "||"
 
 
 (* For debugging: converts a token into a user-readable string. *)

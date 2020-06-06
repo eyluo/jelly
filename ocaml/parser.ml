@@ -20,9 +20,9 @@ type assoc = Left | Right
 let parse lexer =
   let op_info op = 
     match op with
-    | L.Pow -> (3, Right)
-    | L.Plus | L.Minus -> (1, Left)
-    | L.Times | L.Divide -> (2, Left)
+    | L.Op.Pow -> (3, Right)
+    | L.Op.Plus | L.Op.Minus -> (1, Left)
+    | L.Op.Times | L.Op.Divide -> (2, Left)
     | _ -> (100, Left)
   in
 
@@ -80,14 +80,39 @@ let rec parse_stmt lexer =
     | L.Symbol s -> 
       let meq = L.pop lexer in
       let eq = Mark.obj meq in
-      (match eq with
-       | L.Eq -> Mark.with_mark (Ast.Assign (S.create s, parse lexer)) mtok
-       | _ -> 
-         Err.print (Lexer.file lexer) (Lexer.fname lexer) meq;
-         raise (ParserError "var assignment: should be followed by ="))
+      let assign = 
+        match eq with
+        | L.Eq -> Ast.Assign (S.create s, parse lexer)
+        | _ -> 
+          Err.print (Lexer.file lexer) (Lexer.fname lexer) meq;
+          raise (ParserError "var assignment: should be followed by =")
+      in
+      Mark.with_mark assign mtok
     | L.Return -> Mark.with_mark (Ast.Return (parse lexer)) mtok
     (* This only exists for empty-line commands. *)
     | L.Delim -> parse_stmt lexer
+    | L.BoolDecl ->
+      let mvar = L.peek lexer in
+      let var = Mark.obj mvar in
+      let decl =
+        match var with
+        | L.Symbol s -> Ast.Declare(Type.Bool, S.create s)
+        | _ -> 
+          Err.print (Lexer.file lexer) (Lexer.fname lexer) mvar;
+          raise (ParserError "var declaration: keyword bool should be followed by symbol")
+      in
+      Mark.with_mark decl mtok
+    | L.IntDecl ->
+      let mvar = L.peek lexer in
+      let var = Mark.obj mvar in
+      let decl =
+        match var with
+        | L.Symbol s -> Ast.Declare(Type.Int, S.create s)
+        | _ -> 
+          Err.print (Lexer.file lexer) (Lexer.fname lexer) mvar;
+          raise (ParserError "var declaration: keyword int should be followed by symbol")
+      in
+      Mark.with_mark decl mtok
     | _ -> 
       Err.print (Lexer.file lexer) (Lexer.fname lexer) mtok;
       raise (ParserError "statement does not begin with assignment or return")
