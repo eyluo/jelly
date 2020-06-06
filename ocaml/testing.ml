@@ -81,6 +81,22 @@ let _test_typecheck () =
     "../tests/bad/bad_typing.test";
   ]
 
+let _test_ir3 () = 
+  print_endline "Verifying lowering from AST to IR3...";
+
+  let _test_ir3_iter test = 
+    let lexer = (Lx.create test) in
+    let prog = P.parse_program (Lx.create test) in
+    print_endline (Ast.string_of_program prog);
+    T.typecheck lexer prog;
+    let prog_ir3 = IR3.lower_program prog in
+    print_endline (IR3.string_of_ir prog_ir3);
+  in
+
+  List.iter _test_ir3_iter [
+    "../tests/legal/bool_abc.test";
+  ]
+
 let _test_misc () = 
   (* Prints ASTs for expressions to ensure they match with the test files. *)
   print_endline "Verifying ASTs of arithmetic expressions...\n";
@@ -237,5 +253,6 @@ let _test_illegal () =
 let run_tests () = 
   _test_lexer ();
   _test_typecheck ();
+  _test_ir3 ();
   (* _test_misc (); *)
   (* _test_illegal (); *)

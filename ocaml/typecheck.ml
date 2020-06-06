@@ -40,7 +40,7 @@ let typecheck lexer program =
           let (v1, t1) = valid_exp' e1 in
           let (v2, t2) = valid_exp' e2 in
           let (op_ty1, op_ty2, return_ty) = Hashtbl.find_exn builtin_types op in
-          if (v1 && v2) && (phys_equal t1 op_ty1) && (phys_equal t2 op_ty2) then
+          if (v1 && v2) && (Type.equal t1 op_ty1) && (Type.equal t2 op_ty2) then
             (true, return_ty)
           else (false, Type.Alpha)
         in result
@@ -81,7 +81,7 @@ let typecheck lexer program =
               let (is_valid, return_ty) = valid_exp exp in
               if not is_valid then 
                 raise (TypeError "expression does not typecheck")
-              else if not (phys_equal ty return_ty) then 
+              else if not (Type.equal ty return_ty) then 
                 raise (TypeError "type of variable and expression do not match")
               else typecheck' ss
           in ()
