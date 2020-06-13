@@ -2,3 +2,4 @@ _build
 .merlin
 bin/
 jelly
+compilers.code-workspace
