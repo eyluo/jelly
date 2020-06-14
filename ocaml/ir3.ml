@@ -22,8 +22,8 @@ let lower_exp temp exp =
     match exp' with
     | Ast.Var s ->
       (match Hashtbl.find seen s with
-      | Some t -> [ Store (temp, Temporary t) ]
-      | None -> raise (IRError "symbol does not have corresponding temp"))
+       | Some t -> [ Store (temp, Temporary t) ]
+       | None -> raise (IRError "symbol does not have corresponding temp"))
     | Ast.Operator (op, e1, e2) ->
       let t1 = Temp.create () in
       let t2 = Temp.create () in
@@ -61,13 +61,13 @@ let string_of_ir ir =
   let string_of_operand op =
     match op with
     | Immediate i -> string_of_int i
-    | Temporary t -> Temp.string_of_temp t
+    | Temporary t -> Temp.to_string t
   in
   let string_of_instr instr =
     match instr with
-    | Store (t, op) -> Temp.string_of_temp t ^ " = " ^ string_of_operand op
+    | Store (t, op) -> Temp.to_string t ^ " = " ^ string_of_operand op
     | BinOp (t, optr, op1, op2) ->
-      Temp.string_of_temp t
+      Temp.to_string t
       ^ " = "
       ^ string_of_operand op1
       ^ Lexer.string_of_op optr

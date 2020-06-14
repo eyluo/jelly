@@ -7,7 +7,7 @@ module IR3 = Ir3
 
 type t = string
 
-let string_of_asm ir =
+let to_string ir =
   (* Calculates the stack offset for a temporary. *)
   let offset temp = -8 * Temp.int_of_temp temp in
   let asm_of_temp temp = string_of_int (offset temp) ^ "(%rbp)" in
@@ -47,16 +47,16 @@ let string_of_asm ir =
       let instr3 = "movq %rax, " ^ asm_of_temp temp in
       instr1 ^ "\n" ^ instr2 ^ "\n" ^ instr3
   in
-  let rec string_of_asm' ir acc =
+  let rec to_string' ir acc =
     match ir with
     | [] -> acc
-    | i :: is -> string_of_asm' is (List.append acc [ string_of_instr i ])
+    | i :: is -> to_string' is (List.append acc [ string_of_instr i ])
   in
   let prefix =
     ".global _test_fn\n_test_fn:\npushq %rbp\nmovq %rsp, %rbp\nsubq $4096, %rsp\n"
   in
   let suffix = "\naddq $4096, %rsp\npopq %rbp\nretq\n" in
-  prefix ^ String.concat ?sep:(Some "\n") (string_of_asm' ir []) ^ suffix
+  prefix ^ String.concat ?sep:(Some "\n") (to_string' ir []) ^ suffix
 ;;
 
 let asm_to_file outpath asm =

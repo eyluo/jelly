@@ -38,9 +38,15 @@ type token =
 type mtoken = token Mark.t
 type t
 
+(** [file t] Getter method for the filestring in [t] *)
 val file : t -> string
+
+(** [fname t] Getter method for the filename in [t] *)
 val fname : t -> string
+
+(** [string_of_op op] String representation of Lexer.Op.t *)
 val string_of_op : Op.t -> string
+
 val string_of_token : mtoken -> string
 val create : string -> t
 val pop : t -> mtoken

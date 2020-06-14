@@ -1,7 +1,6 @@
 open Core
 
 type t = (Temp.t, Temp.t Hash_set.t) Hashtbl.t
-type edges = Temp.t Hash_set.t
 
 let create () = Hashtbl.create (module Temp)
 
@@ -29,12 +28,12 @@ let add_edge g n1 n2 =
   ()
 ;;
 
-let string_of_graph g =
+let to_string g =
   String.concat
     ?sep:(Some "\n")
     (List.map (Hashtbl.to_alist g) ~f:(function node, edges ->
-         let n = Temp.string_of_temp node in
-         let es = List.map (Hash_set.to_list edges) ~f:Temp.string_of_temp in
+         let n = Temp.to_string node in
+         let es = List.map (Hash_set.to_list edges) ~f:Temp.to_string in
          n ^ ": [" ^ String.concat ?sep:(Some "; ") es ^ "]"))
 ;;
 
@@ -78,7 +77,7 @@ let mcs g =
   mcs' []
 ;;
 
-let string_of_order t = String.concat ?sep:(Some "; ") (List.map t ~f:Temp.string_of_temp)
+let string_of_order t = String.concat ?sep:(Some "; ") (List.map t ~f:Temp.to_string)
 
 let color g nodes =
   let result = Hashtbl.create (module Temp) in
@@ -125,5 +124,5 @@ let string_of_color g =
     ?sep:(Some "\n")
     (Hashtbl.data
        (Hashtbl.mapi g ~f:(fun ~key:k ~data:v ->
-            Temp.string_of_temp k ^ ":" ^ string_of_int v)))
+            Temp.to_string k ^ ":" ^ string_of_int v)))
 ;;

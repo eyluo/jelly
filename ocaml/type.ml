@@ -5,7 +5,7 @@ type t =
   | Bool
   | Alpha
 
-let string_of_type ty =
+let to_string ty =
   match ty with
   | Int -> "int"
   | Bool -> "bool"

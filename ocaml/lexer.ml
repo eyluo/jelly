@@ -182,13 +182,13 @@ let rec next_token lxr =
             | None -> num_str
             | Some ch' ->
               (match ch' with
-              | '0' .. '9' ->
-                drop_char ();
-                parse_int (num_str ^ Char.to_string ch')
-              | 'A' .. 'Z' | 'a' .. 'z' ->
-                lxr_print_err (Mark.create ch' !(lxr.pos) !(lxr.pos));
-                raise (InvalidInt (invalid_loc ()))
-              | _ -> num_str)
+               | '0' .. '9' ->
+                 drop_char ();
+                 parse_int (num_str ^ Char.to_string ch')
+               | 'A' .. 'Z' | 'a' .. 'z' ->
+                 lxr_print_err (Mark.create ch' !(lxr.pos) !(lxr.pos));
+                 raise (InvalidInt (invalid_loc ()))
+               | _ -> num_str)
           in
           let num = int_of_string (parse_int "") in
           M.create (IntVal num) (r, c) !(lxr.pos)
@@ -199,10 +199,10 @@ let rec next_token lxr =
             | None -> sym
             | Some ch' ->
               (match ch' with
-              | 'A' .. 'Z' | 'a' .. 'z' | '0' .. '9' ->
-                drop_char ();
-                parse_symbol (sym ^ Char.to_string ch')
-              | _ -> sym)
+               | 'A' .. 'Z' | 'a' .. 'z' | '0' .. '9' ->
+                 drop_char ();
+                 parse_symbol (sym ^ Char.to_string ch')
+               | _ -> sym)
           in
           let sym = parse_symbol (parse_symbol "") in
           let sym_token =

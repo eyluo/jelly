@@ -3,5 +3,5 @@ type t =
   | Bool
   | Alpha
 
-val string_of_type : t -> string
+val to_string : t -> string
 val equal : t -> t -> bool

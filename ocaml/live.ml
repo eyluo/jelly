@@ -5,7 +5,7 @@ let scan instrs =
   let seen = Hash_set.create (module Temp) in
   (* TODO: for debugging. *)
   (* let string_of_seen () =
-     "[" ^ String.concat ?sep:(Some "; ") (List.map (Hash_set.to_list seen) ~f:Temp.string_of_temp) ^ "]"
+     "[" ^ String.concat ?sep:(Some "; ") (List.map (Hash_set.to_list seen) ~f:Temp.to_string) ^ "]"
      in *)
   let result = Graph.create () in
   let add_to_graph () =
@@ -18,20 +18,20 @@ let scan instrs =
     | [] -> ()
     | d :: ds ->
       (match d with
-      | Some d' ->
-        Hash_set.remove seen d';
-        remove_all ds
-      | _ -> remove_all ds)
+       | Some d' ->
+         Hash_set.remove seen d';
+         remove_all ds
+       | _ -> remove_all ds)
   in
   let rec add_all uses =
     match uses with
     | [] -> ()
     | u :: us ->
       (match u with
-      | Some u' ->
-        Hash_set.add seen u';
-        add_all us
-      | _ -> add_all us)
+       | Some u' ->
+         Hash_set.add seen u';
+         add_all us
+       | _ -> add_all us)
   in
   let rec scan' instrs =
     let temp_from_op op =

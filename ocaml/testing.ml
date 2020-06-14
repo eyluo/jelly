@@ -136,7 +136,7 @@ let _test_misc () =
   let ir2_prog = IR2.lower_ir ir_prog in
   print_endline (IR2.string_of_ir ir2_prog);
   let livescan = L.scan ir2_prog in
-  print_endline (G.string_of_graph livescan);
+  print_endline (G.to_string livescan);
   let seq = G.mcs livescan in
   print_endline (G.string_of_order seq);
   let colored = G.color livescan seq in
@@ -151,7 +151,7 @@ let _test_misc () =
   let ir2_prog = IR2.lower_ir ir_prog in
   print_endline (IR2.string_of_ir ir2_prog);
   let livescan = L.scan ir2_prog in
-  print_endline (G.string_of_graph livescan);
+  print_endline (G.to_string livescan);
   let seq = G.mcs livescan in
   print_endline (G.string_of_order seq);
   let colored = G.color livescan seq in
@@ -166,7 +166,7 @@ let _test_misc () =
   let ir2_prog = IR2.lower_ir ir_prog in
   print_endline (IR2.string_of_ir ir2_prog);
   let livescan = L.scan ir2_prog in
-  print_endline (G.string_of_graph livescan);
+  print_endline (G.to_string livescan);
   let seq = G.mcs livescan in
   print_endline (G.string_of_order seq);
   let colored = G.color livescan seq in
@@ -181,7 +181,7 @@ let _test_misc () =
   let ir2_prog = IR2.lower_ir ir_prog in
   print_endline (IR2.string_of_ir ir2_prog);
   let livescan = L.scan ir2_prog in
-  print_endline (G.string_of_graph livescan);
+  print_endline (G.to_string livescan);
   let seq = G.mcs livescan in
   print_endline (G.string_of_order seq);
   let colored = G.color livescan seq in

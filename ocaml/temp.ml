@@ -21,5 +21,5 @@ let create () =
   increment' ()
 ;;
 
-let string_of_temp t = t
+let to_string t = t
 let int_of_temp t = Scanf.sscanf t "t%d" (fun x -> x)

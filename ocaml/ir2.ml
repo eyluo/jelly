@@ -32,17 +32,17 @@ let string_of_ir instrs =
   let string_of_operand op =
     match op with
     | Immediate i -> string_of_int i
-    | Temporary t -> Temp.string_of_temp t
+    | Temporary t -> Temp.to_string t
   in
   let string_of_instr instr =
     match instr with
-    | Store (temp, op) -> Temp.string_of_temp temp ^ " = " ^ string_of_operand op
+    | Store (temp, op) -> Temp.to_string temp ^ " = " ^ string_of_operand op
     | BinOp (op, dest, src) ->
-      Temp.string_of_temp dest
+      Temp.to_string dest
       ^ " = "
       ^ string_of_operand src
       ^ Lexer.string_of_op op
-      ^ Temp.string_of_temp dest
+      ^ Temp.to_string dest
   in
   let ir_strs = List.map instrs ~f:string_of_instr in
   String.concat ?sep:(Some "\n") ir_strs

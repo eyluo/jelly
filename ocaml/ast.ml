@@ -32,7 +32,7 @@ let rec string_of_exp e =
 
 let string_of_stmt s =
   match M.obj s with
-  | Declare (t, s) -> T.string_of_type t ^ " " ^ S.string_of_symbol s ^ "; "
+  | Declare (t, s) -> T.to_string t ^ " " ^ S.string_of_symbol s ^ "; "
   | Assign (s, e2) -> S.string_of_symbol s ^ " = " ^ string_of_exp e2 ^ "; "
   | Return e -> "return " ^ string_of_exp e ^ "; "
 ;;

@@ -14,7 +14,7 @@ let () =
     print_endline (Ast.string_of_program prog);
     T.typecheck lexer prog;
     let ir_prog = IR3.lower_program prog in
-    let asm = Asm.string_of_asm ir_prog in
+    let asm = Asm.to_string ir_prog in
     Asm.asm_to_file ("bin/" ^ fname ^ ".s") asm;
     let (_ : Core.Unix.Exit_or_signal.t) =
       Core.Unix.system ("gcc -c bin/" ^ fname ^ ".s -o bin/" ^ fname ^ ".o")
