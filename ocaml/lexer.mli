@@ -4,13 +4,12 @@ exception InvalidToken of string
 exception InvalidInt of string
 
 module Op : sig
-  type t = 
-    | Pow 
-    | Plus 
-    | Minus 
-    | Times 
+  type t =
+    | Pow
+    | Plus
+    | Minus
+    | Times
     | Divide
-
     | CompEq
     | Neq
     | Less
@@ -18,7 +17,8 @@ module Op : sig
     | Greater
     | Geq
     | BoolAnd
-    | BoolOr [@@deriving sexp, compare, hash]
+    | BoolOr
+  [@@deriving sexp, compare, hash]
 end
 
 type token =
@@ -36,15 +36,12 @@ type token =
   | Eof
 
 type mtoken = token Mark.t
-
 type t
 
 val file : t -> string
 val fname : t -> string
-
 val string_of_op : Op.t -> string
 val string_of_token : mtoken -> string
-
 val create : string -> t
 val pop : t -> mtoken
 val peek : t -> mtoken
